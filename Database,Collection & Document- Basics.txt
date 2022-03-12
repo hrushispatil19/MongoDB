@@ -66,6 +66,6 @@ local   0.000GB
 
 FYI: In case we have not selected any database, it will use/add/delete default "test" database.
 > db
-test
+test 
 
                                                                                                                           
