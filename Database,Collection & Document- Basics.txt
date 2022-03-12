@@ -42,23 +42,19 @@ local     0.000GB
 > db
 flightDB
 
-> db.flightData.deleteMany({})
-{ "acknowledged" : true, "deletedCount" : 1 }
->  
-
 > $comment: "Deleting Documents, Collection and Database"
-
-> $comment: "Drop Collection"
-> db.flightData.drop()
-true
-> show collections
->   
 
 > $comment: Deleting all documents in Collection"
 > db.flightData.deleteMany({})
 { "acknowledged" : true, "deletedCount" : 1 }
 > db.flightData.find()
->  
+>
+
+> $comment: "Drop Collection"
+> db.flightData.drop()
+true
+> show collections
+>     
 
 > $comment: "Drop Database"
 > db.dropDatabase()
