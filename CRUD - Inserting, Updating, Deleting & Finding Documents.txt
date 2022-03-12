@@ -1,0 +1,115 @@
+>$comment: "Inserting One or More Documents"
+
+> db.flightData.insertOne({"departure" : "Mumbai", "arrival": "Pune", "distance" : 150})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("622cfd398f75b22269736110")
+}
+
+> db.flightData.insertMany([{"departure" : "Pune", "arrival": "Bangalore", "distance" : 840},
+... {"departure" : "Mumbai", "arrival": "Bangalore", "distance" : 990},
+... {"departure" : "Mumbai", "arrival": "Goa", "distance" : 590}])
+{
+        "acknowledged" : true,
+        "insertedIds" : [
+                ObjectId("622cfee88f75b22269736111"),
+                ObjectId("622cfee88f75b22269736112"),
+                ObjectId("622cfee88f75b22269736113")
+        ]
+}
+
+> db.flightData.find()
+{ "_id" : ObjectId("622cfd398f75b22269736110"), "departure" : "Mumbai", "arrival" : "Pune", "distance" : 150 }
+{ "_id" : ObjectId("622cfee88f75b22269736111"), "departure" : "Pune", "arrival" : "Bangalore", "distance" : 840 }
+{ "_id" : ObjectId("622cfee88f75b22269736112"), "departure" : "Mumbai", "arrival" : "Bangalore", "distance" : 990 }
+{ "_id" : ObjectId("622cfee88f75b22269736113"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590 }
+
+
+>$comment: "Updating One or More Documents"  
+
+> db.flightData.updateOne( {distance : 990},{$set: { distance : 1010}} )
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }    
+> db.flightData.find()
+{ "_id" : ObjectId("622cfd398f75b22269736110"), "departure" : "Mumbai", "arrival" : "Pune", "distance" : 150 }
+{ "_id" : ObjectId("622cfee88f75b22269736111"), "departure" : "Pune", "arrival" : "Bangalore", "distance" : 840 }
+{ "_id" : ObjectId("622cfee88f75b22269736112"), "departure" : "Mumbai", "arrival" : "Bangalore", "distance" : 1010 }
+{ "_id" : ObjectId("622cfee88f75b22269736113"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590 }
+
+> db.flightData.updateOne( {departure: "Pune"},{$set: { "aircraft" : "HP98"}} )
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.flightData.find()
+{ "_id" : ObjectId("622cfd398f75b22269736110"), "departure" : "Mumbai", "arrival" : "Pune", "distance" : 150 }
+{ "_id" : ObjectId("622cfee88f75b22269736111"), "departure" : "Pune", "arrival" : "Bangalore", "distance" : 840, "aircraft" : "HP98" }
+{ "_id" : ObjectId("622cfee88f75b22269736112"), "departure" : "Mumbai", "arrival" : "Bangalore", "distance" : 1010 }
+{ "_id" : ObjectId("622cfee88f75b22269736113"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590 }
+
+> db.flightData.updateMany( {departure: "Mumbai"},{$set: { "status" : "delayed"}} )
+{ "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
+> db.flightData.find()
+{ "_id" : ObjectId("622cfd398f75b22269736110"), "departure" : "Mumbai", "arrival" : "Pune", "distance" : 150, "status" : "delayed" }
+{ "_id" : ObjectId("622cfee88f75b22269736111"), "departure" : "Pune", "arrival" : "Bangalore", "distance" : 840, "aircraft" : "HP98" }
+{ "_id" : ObjectId("622cfee88f75b22269736112"), "departure" : "Mumbai", "arrival" : "Bangalore", "distance" : 1010, "status" : "delayed" }
+{ "_id" : ObjectId("622cfee88f75b22269736113"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590, "status" : "delayed" }
+
+> db.flightData.replaceOne({"arrival" : "Pune"},{ "departure": "Goa" , "arrival" : "Mumbai", distance : 590, "aircraft" : "Air India"})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.flightData.find()
+{ "_id" : ObjectId("622cfd398f75b22269736110"), "departure" : "Goa", "arrival" : "Mumbai", "distance" : 590, "aircraft" : "Air India" }
+{ "_id" : ObjectId("622cfee88f75b22269736111"), "departure" : "Pune", "arrival" : "Bangalore", "distance" : 840, "aircraft" : "HP98" }
+{ "_id" : ObjectId("622cfee88f75b22269736112"), "departure" : "Mumbai", "arrival" : "Bangalore", "distance" : 1010, "status" : "delayed" }
+{ "_id" : ObjectId("622cfee88f75b22269736113"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590, "status" : "delayed" }
+
+
+>$comment: "Deleting One or More Documents" 
+
+> db.flightData.deleteOne({"departure" : "Pune"})
+{ "acknowledged" : true, "deletedCount" : 1 }
+> db.flightData.find()
+{ "_id" : ObjectId("622cfd398f75b22269736110"), "departure" : "Goa", "arrival" : "Mumbai", "distance" : 590, "aircraft" : "Air India" }
+{ "_id" : ObjectId("622cfee88f75b22269736112"), "departure" : "Mumbai", "arrival" : "Bangalore", "distance" : 1010, "status" : "delayed" }
+{ "_id" : ObjectId("622cfee88f75b22269736113"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590, "status" : "delayed" }
+
+> db.flightData.deleteMany({"status" : "delayed"})
+{ "acknowledged" : true, "deletedCount" : 2 }
+> db.flightData.find()
+{ "_id" : ObjectId("622cfd398f75b22269736110"), "departure" : "Goa", "arrival" : "Mumbai", "distance" : 590, "aircraft" : "Air India" }
+
+> db.flightData.deleteMany({})
+{ "acknowledged" : true, "deletedCount" : 1 }
+> db.flightData.find()
+>   
+
+>$comment: Finding/ Retrieving One or More Documents" 
+
+> db.flightData.findOne({"departure" : "Mumbai"})
+{
+        "_id" : ObjectId("622d06598f75b22269736115"),
+        "departure" : "Mumbai",
+        "arrival" : "Bangalore",
+        "distance" : 990
+}
+
+> db.flightData.findOne({"distance" : {$gt : 500}})
+{
+        "_id" : ObjectId("622d06598f75b22269736114"),
+        "departure" : "Pune",
+        "arrival" : "Bangalore",
+        "distance" : 840
+} 
+
+> db.flightData.find()
+{ "_id" : ObjectId("622d06598f75b22269736114"), "departure" : "Pune", "arrival" : "Bangalore", "distance" : 840 }
+{ "_id" : ObjectId("622d06598f75b22269736115"), "departure" : "Mumbai", "arrival" : "Bangalore", "distance" : 990 }
+{ "_id" : ObjectId("622d06598f75b22269736116"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590 }
+{ "_id" : ObjectId("622d06668f75b22269736117"), "departure" : "Mumbai", "arrival" : "Pune", "distance" : 150 }
+
+> db.flightData.find({"distance" :  {$lte : 590}})
+{ "_id" : ObjectId("622d06598f75b22269736116"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590 }
+{ "_id" : ObjectId("622d06668f75b22269736117"), "departure" : "Mumbai", "arrival" : "Pune", "distance" : 150 }
+
+> db.flightData.find({"departure" : "Mumbai"})
+{ "_id" : ObjectId("622d06598f75b22269736115"), "departure" : "Mumbai", "arrival" : "Bangalore", "distance" : 990 }
+{ "_id" : ObjectId("622d06598f75b22269736116"), "departure" : "Mumbai", "arrival" : "Goa", "distance" : 590 }
+{ "_id" : ObjectId("622d06668f75b22269736117"), "departure" : "Mumbai", "arrival" : "Pune", "distance" : 150 }
+
+                                                                                                                                                           
