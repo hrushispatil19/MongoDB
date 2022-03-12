@@ -1,0 +1,75 @@
+> $comment : "Creating Database"
+> use flightDB
+switched to db flightDB
+
+> $comment: "Show databases"
+> show dbs
+admin   0.000GB
+config  0.000GB
+local   0.000GB
+
+Note: Database is created. It will show once collection is created in DB.
+
+
+> $comment: "Creating Collection: Implicite Way"
+> db.flightData.insertOne({"departure" : "Mumbai", "arrival": "Pune", "distance" : 150})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("622cf0857f4604dcd7e5ee7b")
+}
+
+OR
+> $comment: "Creating Collection: Explicite Way"
+> db.createCollection("flightData");
+{ "ok" : 1 }
+
+> $comment: "View Collections in database"
+> show collections
+flightData
+
+> $comment: "Once collection is created, we can see database name in db list"
+> show dbs
+admin     0.000GB
+config    0.000GB
+flightDB  0.000GB
+local     0.000GB
+
+> $comment: "View Documents in Collection"
+> db.flightData.find()
+{ "_id" : ObjectId("622cf9be8f75b2226973610f"), "departure" : "Mumbai", "arrival" : "Pune", "distance" : 150 }
+
+> $comment: "View Current Database Name"
+> db
+flightDB
+
+> db.flightData.deleteMany({})
+{ "acknowledged" : true, "deletedCount" : 1 }
+>  
+
+> $comment: "Deleting Documents, Collection and Database"
+
+> $comment: "Drop Collection"
+> db.flightData.drop()
+true
+> show collections
+>   
+
+> $comment: Deleting all documents in Collection"
+> db.flightData.deleteMany({})
+{ "acknowledged" : true, "deletedCount" : 1 }
+> db.flightData.find()
+>  
+
+> $comment: "Drop Database"
+> db.dropDatabase()
+{ "ok" : 1 }
+> show dbs
+admin   0.000GB
+config  0.000GB
+local   0.000GB
+
+FYI: In case we have not selected any database, it will use/add/delete default "test" database.
+> db
+test
+
+                                                                                                                          
