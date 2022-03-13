@@ -1,0 +1,223 @@
+> db.flightData.find().pretty()
+{
+        "_id" : ObjectId("622d06598f75b22269736114"),
+        "departure" : "Pune",
+        "arrival" : "Bangalore",
+        "distance" : 840
+}
+{
+        "_id" : ObjectId("622d06598f75b22269736115"),
+        "departure" : "Mumbai",
+        "arrival" : "Bangalore",
+        "distance" : 990,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+{
+        "_id" : ObjectId("622d06598f75b22269736116"),
+        "departure" : "Mumbai",
+        "arrival" : "Goa",
+        "distance" : 590,
+        "status" : {
+                "st" : "delayed",
+                "lastUpdated" : "1 mins ago",
+                "details" : {
+                        "aircraft" : "HP98"
+                }
+        }
+}
+{
+        "_id" : ObjectId("622d06668f75b22269736117"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 150,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+
+Query On Embedded Documents:
+-------------------------------------
+
+> db.flightData.find({"status.st" : "on-time"}).pretty()
+{
+        "_id" : ObjectId("622d06598f75b22269736115"),
+        "departure" : "Mumbai",
+        "arrival" : "Bangalore",
+        "distance" : 990,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+{
+        "_id" : ObjectId("622d06668f75b22269736117"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 150,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+
+> db.flightData.find({"status.details.aircraft" : {$ne : "HP98"}}).pretty()
+{
+        "_id" : ObjectId("622d06598f75b22269736114"),
+        "departure" : "Pune",
+        "arrival" : "Bangalore",
+        "distance" : 840
+}
+{
+        "_id" : ObjectId("622d06598f75b22269736115"),
+        "departure" : "Mumbai",
+        "arrival" : "Bangalore",
+        "distance" : 990,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+{
+        "_id" : ObjectId("622d06668f75b22269736117"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 150,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+
+> db.flightData.find({"status.details.aircarft" : {$eq : "HP98"}}).pretty()
+{
+        "_id" : ObjectId("622d06598f75b22269736116"),
+        "departure" : "Mumbai",
+        "arrival" : "Goa",
+        "distance" : 590,
+        "status" : {
+                "st" : "delayed",
+                "lastUpdated" : "1 mins ago",
+                "details" : {
+                        "aircarft" : "HP98"
+                }
+        }
+}
+
+
+Query On Array of Embedded Documents:
+-------------------------------------
+> db.warehouses.find().pretty()
+{
+        "_id" : 1,
+        "warehouse" : "warehouse1",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 24
+                },
+                {
+                        "product" : "widgetB",
+                        "in_stock" : 137
+                }
+        ]
+}
+{
+        "_id" : 2,
+        "warehouse" : "warehouse2",
+        "inventory" : [
+                {
+                        "product" : "widgetA1",
+                        "in_stock" : 10,
+                        "ordered" : 20
+                },
+                {
+                        "product" : "widgetC",
+                        "in_stock" : 12
+                },
+                {
+                        "product" : "widgetG",
+                        "in_stock" : 122
+                }
+        ]
+}
+{
+        "_id" : 3,
+        "warehouse" : "warehouse3",
+        "inventory" : [
+                {
+                        "product" : "widgetH",
+                        "in_stock" : 5
+                }
+        ]
+}
+
+> db.warehouses.find({"inventory": {product: "widgetB", in_stock: 137}}).pretty()
+{
+        "_id" : 1,
+        "warehouse" : "warehouse1",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 24
+                },
+                {
+                        "product" : "widgetB",
+                        "in_stock" : 137
+                }
+        ]
+}
+
+> db.warehouses.find({"inventory.in_stock": {$gt : 130}}).pretty()
+{
+        "_id" : 1,
+        "warehouse" : "warehouse1",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 24
+                },
+                {
+                        "product" : "widgetB",
+                        "in_stock" : 137
+                }
+        ]
+}
+
+> db.warehouses.find({"inventory.in_stock": {$gt : 120, $lt : 130}}).pretty()
+{
+        "_id" : 1,
+        "warehouse" : "warehouse1",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 24
+                },
+                {
+                        "product" : "widgetB",
+                        "in_stock" : 137
+                }
+        ]
+}
+{
+        "_id" : 2,
+        "warehouse" : "warehouse2",
+        "inventory" : [
+                {
+                        "product" : "widgetA1",
+                        "in_stock" : 10,
+                        "ordered" : 20
+                },
+                {
+                        "product" : "widgetC",
+                        "in_stock" : 12
+                },
+                {
+                        "product" : "widgetG",
+                        "in_stock" : 122
+                }
+        ]
+}
