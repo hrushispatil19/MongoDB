@@ -351,4 +351,96 @@ Example 2:
                 "onions"
         ]
 }
->
+
+MISC: Another Way To update specific element in an array:
+---------------------------------------------------
+> db.stores.updateOne({"vegetables.0" : "carrots"},{$set : {"vegetables.1": "carrots"}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.stores.find().pretty()
+{
+        "_id" : 1,
+        "fruits" : [ ],
+        "vegetables" : [
+                "carrots",
+                "carrots",
+                "squash",
+                "carrots"
+        ]
+}
+{
+        "_id" : 2,
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+
+> db.stores.updateOne({"vegetables.0" : "carrots"},{$set : {"vegetables.4": {"st":"fresh"}}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.stores.find().pretty()
+{
+        "_id" : 1,
+        "fruits" : [ ],
+        "vegetables" : [
+                "carrots",
+                "carrots",
+                "squash",
+                "carrots",
+                {
+                        "st" : "fresh"
+                }
+        ]
+}
+{
+        "_id" : 2,
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+> db.stores.updateOne({"vegetables.0" : "carrots"},{$set : {"vegetables.4": {"st":"fresh","price": 80}}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.stores.find().pretty()
+{
+        "_id" : 1,
+        "fruits" : [ ],
+        "vegetables" : [
+                "carrots",
+                "carrots",
+                "squash",
+                "carrots",
+                {
+                        "st" : "fresh",
+                        "price" : 80
+                }
+        ]
+}
+{
+        "_id" : 2,
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+> db.stores.find({"vegetables.4.price" : 80}).pretty()
+{
+        "_id" : 1,
+        "fruits" : [ ],
+        "vegetables" : [
+                "carrots",
+                "carrots",
+                "squash",
+                "carrots",
+                {
+                        "st" : "fresh",
+                        "price" : 80
+                }
+        ]
+}
+>   
