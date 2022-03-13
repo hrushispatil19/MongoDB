@@ -1,0 +1,354 @@
+Example 1: (Array of documents)
+
+> db.warehouses.insertMany( [
+...   {
+...     _id: 1,
+...     warehouse : "warehouse1",
+...     inventory : [
+...       { product: "widgetA", in_stock: 24 },
+...       { product: "widgetB", in_stock: 137 },
+...       { product: "widgetC", in_stock: 99 } ]
+...   },
+...   {
+...     _id: 2,
+...     warehouse : "warehouse2",
+...     inventory : [
+...       { product: "widgetA", in_stock: 99 },
+...       { product: "widgetC", in_stock: 12 },
+...       { product: "widgetG", in_stock: 122 } ]
+...   }])
+{ "acknowledged" : true, "insertedIds" : [ 1, 2 ] }
+> db.warehouses.find()
+{ "_id" : 1, "warehouse" : "warehouse1", "inventory" : [ { "product" : "widgetA", "in_stock" : 24 }, { "product" : "widgetB", "in_stock" : 137 }, { "product" : "widgetC", "in_stock" : 99 } ] }
+{ "_id" : 2, "warehouse" : "warehouse2", "inventory" : [ { "product" : "widgetA", "in_stock" : 99 }, { "product" : "widgetC", "in_stock" : 12 }, { "product" : "widgetG", "in_stock" : 122 } ] }
+> db.warehouses.find().pretty()
+{
+        "_id" : 1,
+        "warehouse" : "warehouse1",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 24
+                },
+                {
+                        "product" : "widgetB",
+                        "in_stock" : 137
+                },
+                {
+                        "product" : "widgetC",
+                        "in_stock" : 99
+                }
+        ]
+}
+{
+        "_id" : 2,
+        "warehouse" : "warehouse2",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 99
+                },
+                {
+                        "product" : "widgetC",
+                        "in_stock" : 12
+                },
+                {
+                        "product" : "widgetG",
+                        "in_stock" : 122
+                }
+        ]
+}
+
+> db.warehouses.updateOne({"inventory.in_stock" : 99},{$set: {"inventory.$.product": "widgetA1", "inventory.$.in_stock" : 10, "inventory.$.ordered": 20}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.warehouses.find().pretty()
+{
+        "_id" : 1,
+        "warehouse" : "warehouse1",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 24
+                },
+                {
+                        "product" : "widgetB",
+                        "in_stock" : 137
+                },
+                {
+                        "product" : "widgetA1",
+                        "in_stock" : 10,
+                        "ordered" : 20
+                }
+        ]
+}
+{
+        "_id" : 2,
+        "warehouse" : "warehouse2",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 99
+                },
+                {
+                        "product" : "widgetC",
+                        "in_stock" : 12
+                },
+                {
+                        "product" : "widgetG",
+                        "in_stock" : 122
+                }
+        ]
+}
+
+>$comment: "Remove Document in array of documents"
+> db.warehouses.updateOne({"inventory.product":"widgetA1"},{$pull: {"inventory" :
+... {
+...                         "product" : "widgetA1",
+...                         "in_stock" : 10,
+...                         "ordered" : 20
+... }}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.warehouses.find().pretty()
+{
+        "_id" : 1,
+        "warehouse" : "warehouse1",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 24
+                },
+                {
+                        "product" : "widgetB",
+                        "in_stock" : 137
+                }
+        ]
+}
+{
+        "_id" : 2,
+        "warehouse" : "warehouse2",
+        "inventory" : [
+                {
+                        "product" : "widgetA1",
+                        "in_stock" : 10,
+                        "ordered" : 20
+                },
+                {
+                        "product" : "widgetC",
+                        "in_stock" : 12
+                },
+                {
+                        "product" : "widgetG",
+                        "in_stock" : 122
+                }
+        ]
+}
+
+Example 2:
+
+> db.stores.insertMany( [
+...    {
+...       _id: 1,
+...       fruits: [ "apples", "pears", "oranges", "grapes", "bananas" ],
+...       vegetables: [ "carrots", "celery", "squash", "carrots" ]
+...    },
+...    {
+...       _id: 2,
+...       fruits: [ "plums", "kiwis", "oranges", "bananas", "apples" ],
+...       vegetables: [ "broccoli", "zucchini", "carrots", "onions" ]
+...    }
+... ] )
+{ "acknowledged" : true, "insertedIds" : [ 1, 2 ] }
+> db.stores.find().pretty();
+{
+        "_id" : 1,
+        "fruits" : [
+                "apples",
+                "pears",
+                "oranges",
+                "grapes",
+                "bananas"
+        ],
+        "vegetables" : [
+                "carrots",
+                "celery",
+                "squash",
+                "carrots"
+        ]
+}
+{
+        "_id" : 2,
+        "fruits" : [
+                "plums",
+                "kiwis",
+                "oranges",
+                "bananas",
+                "apples"
+        ],
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+
+>$status: "Update/Replace all elements in an Array"
+> db.stores.updateOne({"_id": 2},{$set : { fruits : ["mangoes","papaya"] }})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.stores.find().pretty();
+{
+        "_id" : 1,
+        "fruits" : [
+                "apples",
+                "pears",
+                "oranges",
+                "grapes",
+                "bananas"
+        ],
+        "vegetables" : [
+                "carrots",
+                "celery",
+                "squash",
+                "carrots"
+        ]
+}
+{
+        "_id" : 2,
+        "fruits" : [
+                "mangoes",
+                "papaya"
+        ],
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+
+>$comment: "Update specific element in array"
+> db.stores.updateOne({"_id": 2, "fruits" : "papaya"},{$set : { "fruits.$" : "kiwis"}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.stores.find().pretty();
+{
+        "_id" : 1,
+        "fruits" : [
+                "apples",
+                "pears",
+                "oranges",
+                "grapes",
+                "bananas"
+        ],
+        "vegetables" : [
+                "carrots",
+                "celery",
+                "squash",
+                "carrots"
+        ]
+}
+{
+        "_id" : 2,
+        "fruits" : [
+                "mangoes",
+                "kiwis"
+        ],
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+
+
+
+>$comment: Remove specific element in array"
+> db.stores.updateOne({"_id": 2},{$pull: {"fruits" : "kiwis"}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.stores.find().pretty();
+{
+        "_id" : 1,
+        "fruits" : [
+                "apples",
+                "pears",
+                "oranges",
+                "grapes",
+                "bananas"
+        ],
+        "vegetables" : [
+                "carrots",
+                "celery",
+                "squash",
+                "carrots"
+        ]
+}
+{
+        "_id" : 2,
+        "fruits" : [
+                "mangoes"
+        ],
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+
+>$comment: Remove all elements in array"
+> db.stores.updateOne({"_id": 1},{$set : { fruits : [] }})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.stores.find().pretty();
+{
+        "_id" : 1,
+        "fruits" : [ ],
+        "vegetables" : [
+                "carrots",
+                "celery",
+                "squash",
+                "carrots"
+        ]
+},
+{
+        "_id" : 2,
+        "fruits" : [
+                "mangoes"
+        ],
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+
+>$status: "Delete Entire Array"
+> db.stores.updateOne({"_id": 2},{$unset: {"fruits" : ""}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.stores.find().pretty();
+{
+        "_id" : 1,
+        "fruits" : [
+                "apples",
+                "pears",
+                "oranges",
+                "grapes",
+                "bananas"
+        ],
+        "vegetables" : [
+                "carrots",
+                "celery",
+                "squash",
+                "carrots"
+        ]
+}
+{
+        "_id" : 2,
+        "vegetables" : [
+                "broccoli",
+                "zucchini",
+                "carrots",
+                "onions"
+        ]
+}
+>
