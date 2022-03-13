@@ -1,0 +1,152 @@
+> $comment: "Inserting Embedded Document"
+
+> db.flightData.insertOne({"departure" : "Pune", "arrival" : "Mumbai", "distance" : 160 , "status" : { "desc": { "st" : "on-time", "lastUpdated" : "30 mins ago"} } , "aircraft" : "HP98" })
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("622de8aa59fdb77721247b47")
+}
+> db.flightData.insertOne({"departure" : "Mumbai", "arrival" : "Pune", "distance" : 160 , "status" : { "desc": { "st" : "delayed", "lastUpdated" : "5 mins ago"}}})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("622de99359fdb77721247b48")
+}
+
+> db.flightData.find().pretty()
+{
+        "_id" : ObjectId("622de8aa59fdb77721247b47"),
+        "departure" : "Pune",
+        "arrival" : "Mumbai",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "on-time",
+                        "lastUpdated" : "30 mins ago"
+                }
+        },
+        "aircraft" : "HP98"
+}
+{
+        "_id" : ObjectId("622de99359fdb77721247b48"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "delayed",
+                        "lastUpdated" : "5 mins ago"
+                }
+        }
+}
+
+> db.flightData.updateOne({"departure": "Mumbai"}, {$set : { "status": { "desc": { "st" : "on-time"} }}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.flightData.find().pretty()
+{
+        "_id" : ObjectId("622de8aa59fdb77721247b47"),
+        "departure" : "Pune",
+        "arrival" : "Mumbai",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "on-time",
+                        "lastUpdated" : "30 mins ago"
+                }
+        },
+        "aircraft" : "HP98"
+}
+{
+        "_id" : ObjectId("622de99359fdb77721247b48"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "on-time"
+                }
+        }
+}
+
+> db.flightData.updateOne({"departure": "Mumbai"}, {$set : { "status": { "desc": { "st" : "on-time", "lastUpdated" : "1 min ago"} }}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.flightData.find().pretty()
+{
+        "_id" : ObjectId("622de8aa59fdb77721247b47"),
+        "departure" : "Pune",
+        "arrival" : "Mumbai",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "on-time",
+                        "lastUpdated" : "30 mins ago"
+                }
+        },
+        "aircraft" : "HP98"
+}
+{
+        "_id" : ObjectId("622de99359fdb77721247b48"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "on-time",
+                        "lastUpdated" : "1 min ago"
+                }
+        }
+}
+
+>$comment : "Remove field ("lastUpdated") in embedded document"
+> db.flightData.updateOne({"departure":"Mumbai"},{$unset: {"status.desc.lastUpdated" :""}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.flightData.find().pretty()
+{
+        "_id" : ObjectId("622de8aa59fdb77721247b47"),
+        "departure" : "Pune",
+        "arrival" : "Mumbai",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "on-time",
+                        "lastUpdated" : "30 mins ago"
+                }
+        },
+        "aircraft" : "HP98"
+}
+{
+        "_id" : ObjectId("622de99359fdb77721247b48"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "on-time"
+                }
+        }
+}   
+
+>$comment : "Remove "status" document in embedded document"
+> db.flightData.updateOne({"departure":"Mumbai"},{$unset: {"status" :""}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.flightData.find().pretty()
+{
+        "_id" : ObjectId("622de8aa59fdb77721247b47"),
+        "departure" : "Pune",
+        "arrival" : "Mumbai",
+        "distance" : 160,
+        "status" : {
+                "desc" : {
+                        "st" : "on-time",
+                        "lastUpdated" : "30 mins ago"
+                }
+        },
+        "aircraft" : "HP98"
+}
+{
+        "_id" : ObjectId("622de99359fdb77721247b48"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 160
+}
+                                                                                                                                                                    
+
+
