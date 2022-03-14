@@ -1,0 +1,222 @@
+>$comment: "Projection on Embedded Documents"
+> db.flightData.find().pretty()
+{
+        "_id" : ObjectId("622d06598f75b22269736114"),
+        "departure" : "Pune",
+        "arrival" : "Bangalore",
+        "distance" : 840
+}
+{
+        "_id" : ObjectId("622d06598f75b22269736115"),
+        "departure" : "Mumbai",
+        "arrival" : "Bangalore",
+        "distance" : 990,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+{
+        "_id" : ObjectId("622d06598f75b22269736116"),
+        "departure" : "Mumbai",
+        "arrival" : "Goa",
+        "distance" : 590,
+        "status" : {
+                "st" : "delayed",
+                "lastUpdated" : "1 mins ago",
+                "details" : {
+                        "aircarft" : "HP98"
+                }
+        }
+}
+{
+        "_id" : ObjectId("622d06668f75b22269736117"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune",
+        "distance" : 150,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+
+>$comment : "Return specified fields and _id field only"
+> db.flightData.find({},{ arrival: 1, departure: 1}).pretty()
+{
+        "_id" : ObjectId("622d06598f75b22269736114"),
+        "departure" : "Pune",
+        "arrival" : "Bangalore"
+}
+{
+        "_id" : ObjectId("622d06598f75b22269736115"),
+        "departure" : "Mumbai",
+        "arrival" : "Bangalore"
+}
+{
+        "_id" : ObjectId("622d06598f75b22269736116"),
+        "departure" : "Mumbai",
+        "arrival" : "Goa"
+}
+{
+        "_id" : ObjectId("622d06668f75b22269736117"),
+        "departure" : "Mumbai",
+        "arrival" : "Pune"
+}
+
+> db.flightData.find({},{"status.details": 1}).pretty()
+{ "_id" : ObjectId("622d06598f75b22269736114") }
+{ "_id" : ObjectId("622d06598f75b22269736115"), "status" : { } }
+{
+        "_id" : ObjectId("622d06598f75b22269736116"),
+        "status" : {
+                "details" : {
+                        "aircarft" : "HP98"
+                }
+        }
+}
+{ "_id" : ObjectId("622d06668f75b22269736117"), "status" : { } }
+
+> db.flightData.find({},{ arrival: 4,_id : 1}).pretty()
+{ "_id" : ObjectId("622d06598f75b22269736114"), "arrival" : "Bangalore" }
+{ "_id" : ObjectId("622d06598f75b22269736115"), "arrival" : "Bangalore" }
+{ "_id" : ObjectId("622d06598f75b22269736116"), "arrival" : "Goa" }
+{ "_id" : ObjectId("622d06668f75b22269736117"), "arrival" : "Pune" }
+
+>$comment : "Return specified fields only and exclude _id field"
+> db.flightData.find({},{ arrival: true,_id : false}).pretty()
+{ "arrival" : "Bangalore" }
+{ "arrival" : "Bangalore" }
+{ "arrival" : "Goa" }
+{ "arrival" : "Pune" }
+
+>$comment: "Return all fields except excluded fields"
+> db.flightData.find({},{ arrival: 0, departure: 0}).pretty()
+{ "_id" : ObjectId("622d06598f75b22269736114"), "distance" : 840 }
+{
+        "_id" : ObjectId("622d06598f75b22269736115"),
+        "distance" : 990,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+{
+        "_id" : ObjectId("622d06598f75b22269736116"),
+        "distance" : 590,
+        "status" : {
+                "st" : "delayed",
+                "lastUpdated" : "1 mins ago",
+                "details" : {
+                        "aircarft" : "HP98"
+                }
+        }
+}
+{
+        "_id" : ObjectId("622d06668f75b22269736117"),
+        "distance" : 150,
+        "status" : {
+                "st" : "on-time",
+                "lastUpdated" : "30 mins ago"
+        }
+}
+
+
+*Error: If we try to use inclusion and exclusion of fields in projection together, then it will gives below error. (Except _id field)
+> db.flightData.find({},{ arrival: 1, departure: 1, distance: 0}).pretty()
+Error: error: {
+        "ok" : 0,
+        "errmsg" : "Cannot do exclusion on field distance in inclusion projection",
+        "code" : 31254,
+        "codeName" : "Location31254"
+}
+> db.flightData.find({},{ arrival: 1, departure: 1,_id : 0}).pretty()
+{ "departure" : "Pune", "arrival" : "Bangalore" }
+{ "departure" : "Mumbai", "arrival" : "Bangalore" }
+{ "departure" : "Mumbai", "arrival" : "Goa" }
+{ "departure" : "Mumbai", "arrival" : "Pune" }
+
+> db.flightData.find({},{ arrival: 1,_id : 1}).pretty()
+{ "_id" : ObjectId("622d06598f75b22269736114"), "arrival" : "Bangalore" }
+{ "_id" : ObjectId("622d06598f75b22269736115"), "arrival" : "Bangalore" }
+{ "_id" : ObjectId("622d06598f75b22269736116"), "arrival" : "Goa" }
+{ "_id" : ObjectId("622d06668f75b22269736117"), "arrival" : "Pune" }
+
+
+>$comment: "Projection on Embedded Documents in an array"
+> db.warehouses.find().pretty()
+{
+        "_id" : 1,
+        "warehouse" : "warehouse1",
+        "inventory" : [
+                {
+                        "product" : "widgetA",
+                        "in_stock" : 24
+                },
+                {
+                        "product" : "widgetB",
+                        "in_stock" : 137
+                }
+        ]
+}
+{
+        "_id" : 2,
+        "warehouse" : "warehouse2",
+        "inventory" : [
+                {
+                        "product" : "widgetA1",
+                        "in_stock" : 10,
+                        "ordered" : 20
+                },
+                {
+                        "product" : "widgetC",
+                        "in_stock" : 12
+                },
+                {
+                        "product" : "widgetG",
+                        "in_stock" : 122
+                }
+        ]
+}
+{
+        "_id" : 3,
+        "warehouse" : "warehouse3",
+        "inventory" : [
+                {
+                        "product" : "widgetH",
+                        "in_stock" : 5
+                }
+        ]
+}
+> db.warehouses.find({"_id" : 2},{"inventory.in_stock" : 1}).pretty()
+{
+        "_id" : 2,
+        "inventory" : [
+                {
+                        "in_stock" : 10
+                },
+                {
+                        "in_stock" : 12
+                },
+                {
+                        "in_stock" : 122
+                }
+        ]
+}
+> db.warehouses.find({"_id" : 2},{"inventory.in_stock" : 0}).pretty()
+{
+        "_id" : 2,
+        "warehouse" : "warehouse2",
+        "inventory" : [
+                {
+                        "product" : "widgetA1",
+                        "ordered" : 20
+                },
+                {
+                        "product" : "widgetC"
+                },
+                {
+                        "product" : "widgetG"
+                }
+        ]
+}
+>
