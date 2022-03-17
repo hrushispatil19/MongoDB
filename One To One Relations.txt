@@ -1,0 +1,140 @@
+One To One Relation - Using Embedded Documents
+-----------------------------------------------
+Example: "One Patient has one disease summary and disease summary is belongs to one patient"
+Patient A <--------------> Summary A
+Patient B <--------------> Summary B
+Patient C <--------------> Summary C
+
+> use relationsDB
+switched to db relationsDB
+> db.patients.insertOne({ name: "Sam", age: 28, diseaseSummary: {
+... diseases : ["cold", "flue"]} })
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6232e0aca5cc115ef9090b55")
+}
+> db.patients.insertOne({ name: "Max", age: 42, diseaseSummary: { diseases : ["cold and flue", "diabetes", "Dengue"]} })
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6232e160a5cc115ef9090b56")
+}
+> db.patients.find().pretty()
+{
+        "_id" : ObjectId("6232e0aca5cc115ef9090b55"),
+        "name" : "Sam",
+        "age" : 28,
+        "diseaseSummary" : {
+                "diseases" : [
+                        "cold",
+                        "flue"
+                ]
+        }
+}
+{
+        "_id" : ObjectId("6232e160a5cc115ef9090b56"),
+        "name" : "Max",
+        "age" : 42,
+        "diseaseSummary" : {
+                "diseases" : [
+                        "cold and flue",
+                        "diabetes",
+                        "Dengue"
+                ]
+        }
+}
+
+* Find disease summary of patient name "MAX":
+
+> db.patients.findOne({name: "Max"}).diseaseSummary
+{ "diseases" : [ "cold and flue", "diabetes", "Dengue" ] }
+
+
+
+One To One Relation - Using References
+-------------------------------------------
+"One person has one car and one car belongs to one person"
+Perosn A <-----------------> Car 1
+Person B <-----------------> Car 2
+Person C <-----------------> Car 3
+
+> db.persons.insertOne({ name: "Sam" , age: 30, salary: 40000})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6232f6fba5cc115ef9090b57")
+}
+> db.persons.insertOne({ name: "Max" , age: 34, salary: 60000})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6232f70da5cc115ef9090b58")
+}
+> db.cars.insertOne({owner: "Sam", model: "BMW", cNo: "MJ 1023J", price: 60000})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6232f760a5cc115ef9090b59")
+}
+> db.cars.insertOne({owner: "Max", model: "Bugatti", cNo: "MK 8063P", price: 80000})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6232f7b9a5cc115ef9090b5a")
+}
+> db.persons.find().pretty()
+{
+        "_id" : ObjectId("6232f6fba5cc115ef9090b57"),
+        "name" : "Sam",
+        "age" : 30,
+        "salary" : 40000
+}
+{
+        "_id" : ObjectId("6232f70da5cc115ef9090b58"),
+        "name" : "Max",
+        "age" : 34,
+        "salary" : 60000
+}
+> db.cars.find().pretty()
+{
+        "_id" : ObjectId("6232f760a5cc115ef9090b59"),
+        "owner" : "Sam",
+        "model" : "BMW",
+        "cNo" : "MJ 1023J",
+        "price" : 60000
+}
+{
+        "_id" : ObjectId("6232f7b9a5cc115ef9090b5a"),
+        "owner" : "Max",
+        "model" : "Bugatti",
+        "cNo" : "MK 8063P",
+        "price" : 80000
+}
+
+* Find all cars data having model- Bugatti
+
+> db.cars.find({model: "Bugatti"}).pretty()
+{
+        "_id" : ObjectId("6232f7b9a5cc115ef9090b5a"),
+        "owner" : "Max",
+        "model" : "Bugatti",
+        "cNo" : "MK 8063P",
+        "price" : 80000
+}
+
+
+Problem: Suppose we want to find car details of a first person in persons data having salary 40000.
+Then we have to run 2 queries first one is to find first person name having salary 40000 and 
+second one is to find car model using person name returned by first query.
+
+> db.persons.findOne({salary: 40000}).name
+Sam
+> var owner= db.persons.findOne({salary: 40000}).name
+> owner
+Sam
+
+> db.cars.find({"owner" : owner}).pretty()
+{
+        "_id" : ObjectId("6232f760a5cc115ef9090b59"),
+        "owner" : "Sam",
+        "model" : "BMW",
+        "cNo" : "MJ 1023J",
+        "price" : 60000
+}
+
+Note:  So in such a case embedded documents is a better approach, because we can find this data in just a one query.
