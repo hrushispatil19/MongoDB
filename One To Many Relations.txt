@@ -1,0 +1,194 @@
+One To Many Relation - Using Embedded documents
+------------------------------------------------
+"One Question thread can have multiple answers but one answer belongs to one question"
+Question Thread 1 <---------> Answer 1
+                  <---------> Answer 2
+		  <---------> Answer 3
+Question Thread 2 <---------> Answer 1
+Question Thread 3 <---------> Answer 1
+                  <---------> Answer 2
+
+> db.questionThreads.insertOne({ creater: "Hrushi", question: "Which Programming Languages are Platform Independent?", answers:
+... [ { text: "Java"}, { text: "Python"}, { text: "Perl"}]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62339af222f0a24678bf94ee")
+}
+> db.questionThreads.insertOne({ creater: "Max", question: "Which is an exit controlled loop?", answers: [ { text: "Do-While Loop"}]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62339b9a22f0a24678bf94ef")
+}
+> db.questionThreads.insertOne({ creater: "Akshay", question: "Which are entry controlled loops?", answers: [ {text: "For Loop"},
+... {text: "While Loop"}]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62339c1222f0a24678bf94f0")
+}
+> db.questionThreads.find().pretty()
+{
+        "_id" : ObjectId("62339af222f0a24678bf94ee"),
+        "creater" : "Hrushi",
+        "question" : "Which Programming Languages are Platform Independent?",
+        "answers" : [
+                {
+                        "text" : "Java"
+                },
+                {
+                        "text" : "Python"
+                },
+                {
+                        "text" : "Perl"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("62339b9a22f0a24678bf94ef"),
+        "creater" : "Max",
+        "question" : "Which is an exit controlled loop?",
+        "answers" : [
+                {
+                        "text" : "Do-While Loop"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("62339c1222f0a24678bf94f0"),
+        "creater" : "Akshay",
+        "question" : "Which are entry controlled loops?",
+        "answers" : [
+                {
+                        "text" : "For Loop"
+                },
+                {
+                        "text" : "While Loop"
+                }
+        ]
+}
+
+
+One To Many Relation - Using References
+-----------------------------------------
+Suppose we want to create registry of city where all citizens are registered.
+"One city has multiple citizens but one citizen is belongs to one city"
+City 1 <---------> Citizen 1
+       <---------> Citizen 2
+       <---------> Citizen 3
+City 2 <---------> Citizen 1
+City 3 <---------> Citizen 1
+       <---------> Citizen 2
+
+> db.cities.insertOne({ cityId: "01", name: "Mumbai", coordinates: {lat: 23, lng: 87} })
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62339fa822f0a24678bf94f1")
+}
+> db.cities.insertOne({ cityId: "12", name: "Pune", coordinates: {lat: 19, lng: 57} })
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62339fec22f0a24678bf94f2")
+}
+> db.cities.insertOne({ cityId: "09", name: "Kolhapur", coordinates: {lat: 25, lng: 67} })
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6233a03822f0a24678bf94f3")
+}
+> db.cities.find().pretty()
+{
+        "_id" : ObjectId("62339fa822f0a24678bf94f1"),
+        "cityId" : "01",
+        "name" : "Mumbai",
+        "coordinates" : {
+                "lat" : 23,
+                "lng" : 87
+        }
+}
+{
+        "_id" : ObjectId("62339fec22f0a24678bf94f2"),
+        "cityId" : "12",
+        "name" : "Pune",
+        "coordinates" : {
+                "lat" : 19,
+                "lng" : 57
+        }
+}
+{
+        "_id" : ObjectId("6233a03822f0a24678bf94f3"),
+        "cityId" : "09",
+        "name" : "Kolhapur",
+        "coordinates" : {
+                "lat" : 25,
+                "lng" : 67
+        }
+}
+
+> db.citizens.insertMany([{ name: "Akshay" , id: "12"}, { name: "Hrushi", id:"09"}, {name: "Vrushi", id:"12"}, {name: "Pooja", id:"12"}, {name: "Sukanya", id:"12"}])
+{
+        "acknowledged" : true,
+        "insertedIds" : [
+                ObjectId("6233a11f22f0a24678bf94f4"),
+                ObjectId("6233a11f22f0a24678bf94f5"),
+                ObjectId("6233a11f22f0a24678bf94f6"),
+                ObjectId("6233a11f22f0a24678bf94f7"),
+                ObjectId("6233a11f22f0a24678bf94f8")
+        ]
+}
+> db.citizens.find().pretty()
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f4"),
+        "name" : "Akshay",
+        "id" : "12"
+}
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f5"),
+        "name" : "Hrushi",
+        "id" : "09"
+}
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f6"),
+        "name" : "Vrushi",
+        "id" : "12"
+}
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f7"),
+        "name" : "Pooja",
+        "id" : "12"
+}
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f8"),
+        "name" : "Sukanya",
+        "id" : "12"
+}
+
+* Find all citizens living in Pune City:
+
+> var cityId = db.cities.findOne({name: "Pune"}).cityId
+> cityId
+12
+> db.citizens.find({id: cityId}).pretty()
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f4"),
+        "name" : "Akshay",
+        "id" : "12"
+}
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f6"),
+        "name" : "Vrushi",
+        "id" : "12"
+}
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f7"),
+        "name" : "Pooja",
+        "id" : "12"
+}
+{
+        "_id" : ObjectId("6233a11f22f0a24678bf94f8"),
+        "name" : "Sukanya",
+        "id" : "12"
+}
+
+Note: Here we can use embedded documents also but there is one limitation. Overall document size can be 16MB. 
+So if any city has millions of citizens then we can't store all citizens data in embedded document.
+
+
+
