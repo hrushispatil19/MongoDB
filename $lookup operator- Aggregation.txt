@@ -1,0 +1,90 @@
+> db.books.find().pretty()
+{
+        "_id" : ObjectId("6234bd2c60a3e0d6d2131f79"),
+        "name" : "Let us C",
+        "price" : 250,
+        "authors" : [
+                {
+                        "authorId" : "01"
+                },
+                {
+                        "authorId" : "03"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("6234bd8260a3e0d6d2131f7a"),
+        "name" : "Java in details",
+        "price" : 350,
+        "authors" : [
+                {
+                        "authorId" : "02"
+                }
+        ]
+}
+> db.authors.find().pretty()
+{
+        "_id" : ObjectId("6234be0960a3e0d6d2131f7b"),
+        "aid" : "01",
+        "aname" : "Yashwant K"
+}
+{
+        "_id" : ObjectId("6234be0960a3e0d6d2131f7c"),
+        "aid" : "02",
+        "aname" : "H. K"
+}
+{
+        "_id" : ObjectId("6234be0960a3e0d6d2131f7d"),
+        "aid" : "03",
+        "aname" : "Sam C"
+}
+
+> db.books.aggregate([{ $lookup: {
+... from: "authors",
+... localField: "authors.authorId",
+... foreignField: "aid",
+... as: "creators"
+... }}]).pretty()
+{
+        "_id" : ObjectId("6234bd2c60a3e0d6d2131f79"),
+        "name" : "Let us C",
+        "price" : 250,
+        "authors" : [
+                {
+                        "authorId" : "01"
+                },
+                {
+                        "authorId" : "03"
+                }
+        ],
+        "creators" : [
+                {
+                        "_id" : ObjectId("6234be0960a3e0d6d2131f7b"),
+                        "aid" : "01",
+                        "aname" : "Yashwant K"
+                },
+                {
+                        "_id" : ObjectId("6234be0960a3e0d6d2131f7d"),
+                        "aid" : "03",
+                        "aname" : "Sam C"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("6234bd8260a3e0d6d2131f7a"),
+        "name" : "Java in details",
+        "price" : 350,
+        "authors" : [
+                {
+                        "authorId" : "02"
+                }
+        ],
+        "creators" : [
+                {
+                        "_id" : ObjectId("6234be0960a3e0d6d2131f7c"),
+                        "aid" : "02",
+                        "aname" : "H. K"
+                }
+        ]
+}
+> 
