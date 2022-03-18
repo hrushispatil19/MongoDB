@@ -1,0 +1,137 @@
+Many To Many Relation - Using Embedded Documents
+-------------------------------------------------
+Example: "One Customer can buy many products and a product might be baught by many customers."
+
+> db.customers.insertOne({ name: "Max", age: 29, orders: [
+... {productName: "A Book", price: 20, quantity: 2},
+... {productName: "A Pen", price: 10, quantity: 5}]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62349bb060a3e0d6d2131f77")
+}
+> db.customers.insertOne({ name: "Sam", age: 25, orders:[
+... {productName: "A Pen", price: 10, quantity: 10},
+... {productName: "Cake", price:100, quantity:2},
+... {productName: "A Book", price: 20, quantity: 1}]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62349c4d60a3e0d6d2131f78")
+}
+> db.customers.find().pretty()
+{
+        "_id" : ObjectId("62349bb060a3e0d6d2131f77"),
+        "name" : "Max",
+        "age" : 29,
+        "orders" : [
+                {
+                        "productName" : "A Book",
+                        "price" : 20,
+                        "quantity" : 2
+                },
+                {
+                        "productName" : "A Pen",
+                        "price" : 10,
+                        "quantity" : 5
+                }
+        ]
+}
+{
+        "_id" : ObjectId("62349c4d60a3e0d6d2131f78"),
+        "name" : "Sam",
+        "age" : 25,
+        "orders" : [
+                {
+                        "productName" : "A Pen",
+                        "price" : 10,
+                        "quantity" : 10
+                },
+                {
+                        "productName" : "Cake",
+                        "price" : 100,
+                        "quantity" : 2
+                },
+                {
+                        "productName" : "A Book",
+                        "price" : 20,
+                        "quantity" : 1
+                }
+        ]
+}
+
+* Find name of customers who baught more than 5 Pens:
+
+> db.customers.find({$and: [{"orders.productName": "A Pen"}, {"orders.quantity": {$gt: 5}}]},
+... {_id: 0, age: 0, orders: 0}).pretty()
+{ "name" : "Sam" }
+
+Many To Many Relation - Using References
+-----------------------------------------
+Example: : "A Book is written by many authors and an author belongs to/wrote many books."
+
+> db.books.insertOne({name: "Let us C", price: 250, authors : [ {authorId: "01"}, {authorId: "03"}]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6234bd2c60a3e0d6d2131f79")
+}
+> db.books.insertOne({name: "Java in details", price: 350, authors : [ {authorId: "02"}]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6234bd8260a3e0d6d2131f7a")
+}
+> db.authors.insertMany([ { aid: "01", aname: "Yashwant K"}, {aid: "02", aname: "H. K"}, {aid: "03", aname: "Sam C"} ])
+{
+        "acknowledged" : true,
+        "insertedIds" : [
+                ObjectId("6234be0960a3e0d6d2131f7b"),
+                ObjectId("6234be0960a3e0d6d2131f7c"),
+                ObjectId("6234be0960a3e0d6d2131f7d")
+        ]
+}
+> db.books.find().pretty()
+{
+        "_id" : ObjectId("6234bd2c60a3e0d6d2131f79"),
+        "name" : "Let us C",
+        "price" : 250,
+        "authors" : [
+                {
+                        "authorId" : "01"
+                },
+                {
+                        "authorId" : "03"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("6234bd8260a3e0d6d2131f7a"),
+        "name" : "Java in details",
+        "price" : 350,
+        "authors" : [
+                {
+                        "authorId" : "02"
+                }
+        ]
+}
+> db.authors.find().pretty()
+{
+        "_id" : ObjectId("6234be0960a3e0d6d2131f7b"),
+        "aid" : "01",
+        "aname" : "Yashwant K"
+}
+{
+        "_id" : ObjectId("6234be0960a3e0d6d2131f7c"),
+        "aid" : "02",
+        "aname" : "H. K"
+}
+{
+        "_id" : ObjectId("6234be0960a3e0d6d2131f7d"),
+        "aid" : "03",
+        "aname" : "Sam C"
+}
+
+* Find all books which are written by author "Yashwant K":
+
+> var authId = db.authors.findOne({aname: "Yashwant K"}).aid
+> authId
+01
+> db.books.find({"authors.authorId": authId},{_id: 0, price: 0, authors: 0}).pretty()
+{ "name" : "Let us C" }
