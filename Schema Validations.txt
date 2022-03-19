@@ -1,0 +1,253 @@
+* Add validation schemas while creating collection:
+----------------------------------------------------
+
+> db.createCollection("posts",{validator: {
+... $jsonSchema: {
+... bsonType: "object",
+... required: ["title","text","creator","comments"],
+... properties: {
+...   title: {
+...     bsonType: "string",
+...     description: "must be string and is required"
+...   },
+...   text: {
+...     bsonType: "string",
+...     description: "must be string and is required"
+...   },
+...   creator: {
+...     bsonType: "string",
+...     description: "must be string and is required"
+...   },
+...   comments: {
+...     bsonType: "array",
+...     description: "must be an array and is required",
+...       items: {
+...         bsonType: "object",
+...         properties: {
+...           text: {
+...             bsonType: "string",
+...             description: "must be string and is required"
+...           },
+...           author: {
+...             bsonType: "string",
+...             description: "must be string and is required"
+...           }
+...         }
+...       }
+...     }
+... }}}})
+{ "ok" : 1 }
+
+Valid Data:
+
+> db.posts.insertOne({title: "My First Post", text: "This is my first post on instagram", creator: "H. K", tags: ["new", "inspired"], comments: [ {text: "I like this post..", author: "Sam S. R"} ]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62363a7b809ba44621c2a8f5")
+}
+
+Invalid Data: (will pass number in author field instead of string)
+
+> db.posts.insertOne({title: "My First Post", text: "This is my first post on instagram", creator: "H. K", tags: ["new", "inspired"], comments: [ {text: "I like this post..", author: 12} ]})
+WriteError({
+        "index" : 0,
+        "code" : 121,
+        "errmsg" : "Document failed validation",
+        "op" : {
+                "_id" : ObjectId("62363ad2809ba44621c2a8f6"),
+                "title" : "My First Post",
+                "text" : "This is my first post on instagram",
+                "creator" : "H. K",
+                "tags" : [
+                        "new",
+                        "inspired"
+                ],
+                "comments" : [
+                        {
+                                "text" : "I like this post..",
+                                "author" : 12
+                        }
+                ]
+        },
+        "errInfo" : {
+                "failingDocumentId" : ObjectId("62363ad2809ba44621c2a8f6"),
+                "details" : {
+                        "operatorName" : "$jsonSchema",
+                        "schemaRulesNotSatisfied" : [
+                                {
+                                        "operatorName" : "properties",
+                                        "propertiesNotSatisfied" : [
+                                                {
+                                                        "propertyName" : "comments",
+                                                        "details" : [
+                                                                {
+                                                                        "operatorName" : "items",
+                                                                        "reason" : "At least one item did not match the sub-schema",
+                                                                        "itemIndex" : 0,
+                                                                        "details" : [
+                                                                                {
+                                                                                        "operatorName" : "properties",
+                                                                                        "propertiesNotSatisfied" : [
+                                                                                                {
+                                                                                                        "propertyName" : "author",
+                                                                                                        "details" : [
+                                                                                                                {
+                                                                                                                        "operatorName" : "bsonType",
+                                                                                                                        "specifiedAs" : {
+                                                                                                                                "bsonType" : "string"
+                                                                                                                        },
+                                                                                                                        "reason" : "type did not match",
+                                                                                                                        "consideredValue" : 12,
+                                                                                                                        "consideredType" : "double"
+                                                                                                                }
+                                                                                                        ]
+                                                                                                }
+                                                                                        ]
+                                                                                }
+                                                                        ]
+                                                                }
+                                                        ]
+                                                }
+                                        ]
+                                }
+                        ]
+                }
+        }
+}) 
+WriteError@src/mongo/shell/bulk_api.js:465:48
+mergeBatchResults@src/mongo/shell/bulk_api.js:871:49
+executeBatch@src/mongo/shell/bulk_api.js:940:13
+Bulk/this.execute@src/mongo/shell/bulk_api.js:1182:21
+DBCollection.prototype.insertOne@src/mongo/shell/crud_api.js:264:9
+@(shell):1:1
+
+> db.posts.find().pretty()
+{
+        "_id" : ObjectId("62363a7b809ba44621c2a8f5"),
+        "title" : "My First Post",
+        "text" : "This is my first post on instagram",
+        "creator" : "H. K",
+        "tags" : [
+                "new",
+                "inspired"
+        ],
+        "comments" : [
+                {
+                        "text" : "I like this post..",
+                        "author" : "Sam S. R"
+                }
+        ]
+}
+
+
+* Add validation schemas using runCommand() on existing collection:
+--------------------------------------------------------------------
+
+> db.runCommand({collMod: "posts" , validator: {
+...  $jsonSchema: {
+...  bsonType: "object",
+...  required: ["title","text","creator","comments"],
+...  properties: {
+...    title: {
+...      bsonType: "string",
+...      description: "must be string and is required"
+...    },
+...    text: {
+...      bsonType: "string",
+...      description: "must be string and is required"
+...    },
+...    creator: {
+...      bsonType: "string",
+...      description: "must be string and is required"
+...    },
+...    comments: {
+...      bsonType: "array",
+...      description: "must be an array and is required",
+...        items: {
+...          bsonType: "object",
+...          properties: {
+...            text: {
+...              bsonType: "string",
+...              description: "must be string and is required"
+...            },
+...            author: {
+...              bsonType: "string",
+...              description: "must be string and is required"
+...            }
+...          }
+...        }
+...      }
+...  }}},
+... validationLevel: "moderate",
+... validationAction: "warn"
+... })
+{ "ok" : 1 }
+
+Valid data:
+
+> db.posts.insertOne({title: "My First Post", text: "This is my second post on instagram", creator: "H. K", tags: ["new", "inspired"], comments: [ {text: "I like this post..", author: "Sam S. R"} ]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62363ee9809ba44621c2a8f7")
+}
+
+Invalid data:
+
+> db.posts.insertOne({title: 12, text: "This is my third post on instagram", creator: "H. P", tags: ["new", "inspired"], comments: [ {text: "I like this post..", author: "H. K"} ]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62363f3d809ba44621c2a8f8")
+}
+Note: "Document is added to collection even if we have entered incorrect data (i.e. title: 12)
+because we have set validation action as warn".
+
+> db.posts.find().pretty()
+{
+        "_id" : ObjectId("62363a7b809ba44621c2a8f5"),
+        "title" : "My First Post",
+        "text" : "This is my first post on instagram",
+        "creator" : "H. K",
+        "tags" : [
+                "new",
+                "inspired"
+        ],
+        "comments" : [
+                {
+                        "text" : "I like this post..",
+                        "author" : "Sam S. R"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("62363ee9809ba44621c2a8f7"),
+        "title" : "My First Post",
+        "text" : "This is my second post on instagram",
+        "creator" : "H. K",
+        "tags" : [
+                "new",
+                "inspired"
+        ],
+        "comments" : [
+                {
+                        "text" : "I like this post..",
+                        "author" : "Sam S. R"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("62363f3d809ba44621c2a8f8"),
+        "title" : 12,
+        "text" : "This is my third post on instagram",
+        "creator" : "H. P",
+        "tags" : [
+                "new",
+                "inspired"
+        ],
+        "comments" : [
+                {
+                        "text" : "I like this post..",
+                        "author" : "H. K"
+                }
+        ]
+}                                                                                                                                                                       
+
