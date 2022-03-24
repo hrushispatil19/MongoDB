@@ -1,0 +1,172 @@
+Create Options:
+=================================
+
+* ordered: (true / false)
+-------------------------
+Default Value: true
+
+true: If ordered flag is set to true, it's called as ordered inserts.
+
+> db.hobbies.find()
+> db.hobbies.insertMany([{_id: "sports", name:"Sports"}, {_id: "cooking", name:"Cooking"}], {ordered: true})
+{ "acknowledged" : true, "insertedIds" : [ "sports", "cooking" ] }
+> db.hobbies.find()
+{ "_id" : "sports", "name" : "Sports" }
+{ "_id" : "cooking", "name" : "Cooking" }
+
+Invalid Data: (will try to insert hobby that already present in hobbies collection)
+> db.hobbies.insertMany([{_id: "bikes", name:"Bikes"}, {_id: "cooking", name:"Cooking"},{_id: "hiking", name:"Hiking"}], {ordered: true})
+uncaught exception: BulkWriteError({
+        "writeErrors" : [
+                {
+                        "index" : 1,
+                        "code" : 11000,
+                        "errmsg" : "E11000 duplicate key error collection: createDB.hobbies index: _id_ dup key: { _id: \"cooking\" }",
+                        "op" : {
+                                "_id" : "cooking",
+                                "name" : "Cooking"
+                        }
+                }
+        ],
+        "writeConcernErrors" : [ ],
+        "nInserted" : 1,
+        "nUpserted" : 0,
+        "nMatched" : 0,
+        "nModified" : 0,
+        "nRemoved" : 0,
+        "upserted" : [ ]
+})
+
+Note: Here cooking hobby is already present in collection, so it failed at 2nd document. 
+But it will insert previous valid documents (i.e. bikes) and skips remaining documents from 2nd document (i.e. cooking & hiking)
+
+> db.hobbies.find()
+{ "_id" : "sports", "name" : "Sports" }
+{ "_id" : "cooking", "name" : "Cooking" }
+{ "_id" : "bikes", "name" : "Bikes" }
+
+
+false: If ordered flag is set to false, it's called as unordered inserts.
+
+> db.hobbies.insertMany([{_id: "sports", name:"Sports"}, {_id: "cooking", name:"Cooking"}], {ordered: false})
+{ "acknowledged" : true, "insertedIds" : [ "sports", "cooking" ] }
+
+> db.hobbies.find()
+{ "_id" : "sports", "name" : "Sports" }
+{ "_id" : "cooking", "name" : "Cooking" }
+
+> db.hobbies.insertMany([{_id: "bikes", name:"Bikes"}, {_id: "cooking", name:"Cooking"},{_id: "hiking", name:"Hiking"},{_id: "cars", name: "Cars"}], {ordered: false})
+uncaught exception: BulkWriteError({
+        "writeErrors" : [
+                {
+                        "index" : 1,
+                        "code" : 11000,
+                        "errmsg" : "E11000 duplicate key error collection: createDB.hobbies index: _id_ dup key: { _id: \"cooking\" }",
+                        "op" : {
+                                "_id" : "cooking",
+                                "name" : "Cooking"
+                        }
+                }
+        ],
+        "writeConcernErrors" : [ ],
+        "nInserted" : 3,
+        "nUpserted" : 0,
+        "nMatched" : 0,
+        "nModified" : 0,
+        "nRemoved" : 0,
+        "upserted" : [ ]
+}) :
+
+Note: Here cooking hobby is already present in collection, so it failed at 2nd document. 
+But it will insert all valid documents present in list and only throws error for invalid documents.
+
+> db.hobbies.find()
+{ "_id" : "sports", "name" : "Sports" }
+{ "_id" : "cooking", "name" : "Cooking" }
+{ "_id" : "bikes", "name" : "Bikes" }
+{ "_id" : "hiking", "name" : "Hiking" }
+{ "_id" : "cars", "name" : "Cars" }
+
+
+* writeConcern:
+It provides 3 suboptions: w (write), j (journal), wtimeout(write timeout)
+
+w: 
+> db.persons.insertOne({name: "Sam", age: 23},{writeConcern: { w: 1}})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623a19151ad2f383ce271c69")
+}
+> db.persons.insertOne({name: "Maxi", age: 23},{writeConcern: { w: 0}})
+{ "acknowledged" : false }
+
+Note: If w flag set to 0, it will not wait till server response. 
+It will directly acknowledge to user without showing operation succeeded or failed.
+If w flag set to 1, it will wait for server response and then only acknowledge to user.
+
+j: (default value is false)
+> db.persons.insertOne({name: "Rohit", age: 34},{writeConcern: { w: 1, j: false}})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623a1b411ad2f383ce271c6c")
+}
+> db.persons.insertOne({name: "Mohit", age: 32},{writeConcern: { w: 1, j: true}})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623a1b6b1ad2f383ce271c6d")
+}
+Note: If j flag set to 0, write operation has been written to the on-disk.
+If j flag set to 1, write operation has been written to the on-disk journal.
+
+wtimeout:
+> db.persons.insertMany([{name: "Roy", age: 35}],{writeConcern: { w: 1, j: 1, wtimeout: 5}})
+{
+        "acknowledged" : true,
+        "insertedIds" : [
+                ObjectId("623a1fd31ad2f383ce271c70")
+        ]
+}
+Note: wtimeout is only applicable for w values greater than 1.
+Specifying wtimeout value of 0 is same as write concern without the wtimeout option.
+
+* Importing Data:
+=================================
+
+tv-shows.json file:
+[{ "_id" : ObjectId("6239f0a6d0ef6cccd028873d"), "id" : 2, "url" : "http://www.tvmaze.com/shows/2/person-of-interest", "name" : "Person of Interest", "type" : "Scripted", "language" : "English", "genres" : [ "Drama", "Action", "Crime" ], "status" : "Ended", "runtime" : 60, "premiered" : "2011-09-22", "officialSite" : "http://www.cbs.com/shows/person_of_interest/", "schedule" : { "time" : "22:00", "days" : [ "Tuesday" ] }, "rating" : { "average" : 9 }, "weight" : 96, "network" : { "id" : 2, "name" : "CBS", "country" : { "name" : "United States", "code" : "US", "timezone" : "America/New_York" } }, "webChannel" : null, "externals" : { "tvrage" : 28376, "thetvdb" : 248742, "imdb" : "tt1839578" }, "image" : { "medium" : "http://static.tvmaze.com/uploads/images/medium_portrait/163/407679.jpg", "original" : "http://static.tvmaze.com/uploads/images/original_untouched/163/407679.jpg" }, "summary" : "<p>You are being watched. The government has a secret system, a machine that spies on you every hour of every day. I know because I built it. I designed the Machine to detect acts of terror but it sees everything. Violent crimes involving ordinary people. People like you. Crimes the government considered \"irrelevant\". They wouldn't act so I decided I would. But I needed a partner. Someone with the skills to intervene. Hunted by the authorities, we work in secret. You'll never find us. But victim or perpetrator, if your number is up, we'll find you.</p>", "updated" : 1535507028, "_links" : { "self" : { "href" : "http://api.tvmaze.com/shows/2" }, "previousepisode" : { "href" : "http://api.tvmaze.com/episodes/659372" } } }
+{ "_id" : ObjectId("6239f0a6d0ef6cccd028873e"), "id" : 3, "url" : "http://www.tvmaze.com/shows/3/bitten", "name" : "Bitten", "type" : "Scripted", "language" : "English", "genres" : [ "Drama", "Horror", "Romance" ], "status" : "Ended", "runtime" : 60, "premiered" : "2014-01-11", "officialSite" : "http://bitten.space.ca/", "schedule" : { "time" : "22:00", "days" : [ "Friday" ] }, "rating" : { "average" : 7.6 }, "weight" : 75, "network" : { "id" : 7, "name" : "Space", "country" : { "name" : "Canada", "code" : "CA", "timezone" : "America/Halifax" } }, "webChannel" : null, "externals" : { "tvrage" : 34965, "thetvdb" : 269550, "imdb" : "tt2365946" }, "image" : { "medium" : "http://static.tvmaze.com/uploads/images/medium_portrait/0/15.jpg", "original" : "http://static.tvmaze.com/uploads/images/original_untouched/0/15.jpg" }, "summary" : "<p>Based on the critically acclaimed series of novels from Kelley Armstrong. Set in Toronto and upper New York State, <b>Bitten</b> follows the adventures of 28-year-old Elena Michaels, the world's only female werewolf. An orphan, Elena thought she finally found her \"happily ever after\" with her new love Clayton, until her life changed forever. With one small bite, the normal life she craved was taken away and she was left to survive life with the Pack.</p>", "updated" : 1534079818, "_links" : { "self" : { "href" : "http://api.tvmaze.com/shows/3" }, "previousepisode" : { "href" : "http://api.tvmaze.com/episodes/631862" } } }
+{ "_id" : ObjectId("6239f0a6d0ef6cccd028873f"), "id" : 1, "url" : "http://www.tvmaze.com/shows/1/under-the-dome", "name" : "Under the Dome", "type" : "Scripted", "language" : "English", "genres" : [ "Drama", "Science-Fiction", "Thriller" ], "status" : "Ended", "runtime" : 60, "premiered" : "2013-06-24", "officialSite" : "http://www.cbs.com/shows/under-the-dome/", "schedule" : { "time" : "22:00", "days" : [ "Thursday" ] }, "rating" : { "average" : 6.5 }, "weight" : 91, "network" : { "id" : 2, "name" : "CBS", "country" : { "name" : "United States", "code" : "US", "timezone" : "America/New_York" } }, "webChannel" : null, "externals" : { "tvrage" : 25988, "thetvdb" : 264492, "imdb" : "tt1553656" }, "image" : { "medium" : "http://static.tvmaze.com/uploads/images/medium_portrait/0/1.jpg", "original" : "http://static.tvmaze.com/uploads/images/original_untouched/0/1.jpg" }, "summary" : "<p><b>Under the Dome</b> is the story of a small town that is suddenly and inexplicably sealed off from the rest of the world by an enormous transparent dome. The town's inhabitants must deal with surviving the post-apocalyptic conditions while searching for answers about the dome, where it came from and if and when it will go away.</p>", "updated" : 1529612668, "_links" : { "self" : { "href" : "http://api.tvmaze.com/shows/1" }, "previousepisode" : { "href" : "http://api.tvmaze.com/episodes/185054" } } }]
+
+Before Import:-
+-------------------------------------------------
+> use createDB
+switched to db createDB
+> db.shows.find()
+{ "_id" : ObjectId("6239e9c804351d075d3d30c6"), "name" : "ABCDE" }
+
+Importing Data:- (use command prompt or terminal)
+-------------------------------------------------
+$ or H:\Data> mongoimport tv-shows.json -d createDB -c shows --jsonArray --drop
+output:
+2022-03-22T21:22:06.075+0530    connected to: mongodb://localhost/
+2022-03-22T21:22:06.076+0530    dropping: createDB.shows
+2022-03-22T21:22:06.148+0530    3 document(s) imported successfully. 0 document(s) failed to import.
+
+mongoimport : It's a MongoDB database tool to import data from files like JSON, CSV, or TSV
+-d : stands for database
+createDB : It's a database name
+-c : stands for collection
+shows : It's a collection in createDB database 
+--jsonArray: indicates that file contains array of documents
+--drop : It will drop a collection and then import the data to same collection
+
+
+After Import:-
+-------------------------------------------------
+> db.shows.find()
+{ "_id" : ObjectId("6239f0a6d0ef6cccd028873d"), "id" : 2, "url" : "http://www.tvmaze.com/shows/2/person-of-interest", "name" : "Person of Interest", "type" : "Scripted", "language" : "English", "genres" : [ "Drama", "Action", "Crime" ], "status" : "Ended", "runtime" : 60, "premiered" : "2011-09-22", "officialSite" : "http://www.cbs.com/shows/person_of_interest/", "schedule" : { "time" : "22:00", "days" : [ "Tuesday" ] }, "rating" : { "average" : 9 }, "weight" : 96, "network" : { "id" : 2, "name" : "CBS", "country" : { "name" : "United States", "code" : "US", "timezone" : "America/New_York" } }, "webChannel" : null, "externals" : { "tvrage" : 28376, "thetvdb" : 248742, "imdb" : "tt1839578" }, "image" : { "medium" : "http://static.tvmaze.com/uploads/images/medium_portrait/163/407679.jpg", "original" : "http://static.tvmaze.com/uploads/images/original_untouched/163/407679.jpg" }, "summary" : "<p>You are being watched. The government has a secret system, a machine that spies on you every hour of every day. I know because I built it. I designed the Machine to detect acts of terror but it sees everything. Violent crimes involving ordinary people. People like you. Crimes the government considered \"irrelevant\". They wouldn't act so I decided I would. But I needed a partner. Someone with the skills to intervene. Hunted by the authorities, we work in secret. You'll never find us. But victim or perpetrator, if your number is up, we'll find you.</p>", "updated" : 1535507028, "_links" : { "self" : { "href" : "http://api.tvmaze.com/shows/2" }, "previousepisode" : { "href" : "http://api.tvmaze.com/episodes/659372" } } }
+{ "_id" : ObjectId("6239f0a6d0ef6cccd028873e"), "id" : 3, "url" : "http://www.tvmaze.com/shows/3/bitten", "name" : "Bitten", "type" : "Scripted", "language" : "English", "genres" : [ "Drama", "Horror", "Romance" ], "status" : "Ended", "runtime" : 60, "premiered" : "2014-01-11", "officialSite" : "http://bitten.space.ca/", "schedule" : { "time" : "22:00", "days" : [ "Friday" ] }, "rating" : { "average" : 7.6 }, "weight" : 75, "network" : { "id" : 7, "name" : "Space", "country" : { "name" : "Canada", "code" : "CA", "timezone" : "America/Halifax" } }, "webChannel" : null, "externals" : { "tvrage" : 34965, "thetvdb" : 269550, "imdb" : "tt2365946" }, "image" : { "medium" : "http://static.tvmaze.com/uploads/images/medium_portrait/0/15.jpg", "original" : "http://static.tvmaze.com/uploads/images/original_untouched/0/15.jpg" }, "summary" : "<p>Based on the critically acclaimed series of novels from Kelley Armstrong. Set in Toronto and upper New York State, <b>Bitten</b> follows the adventures of 28-year-old Elena Michaels, the world's only female werewolf. An orphan, Elena thought she finally found her \"happily ever after\" with her new love Clayton, until her life changed forever. With one small bite, the normal life she craved was taken away and she was left to survive life with the Pack.</p>", "updated" : 1534079818, "_links" : { "self" : { "href" : "http://api.tvmaze.com/shows/3" }, "previousepisode" : { "href" : "http://api.tvmaze.com/episodes/631862" } } }
+{ "_id" : ObjectId("6239f0a6d0ef6cccd028873f"), "id" : 1, "url" : "http://www.tvmaze.com/shows/1/under-the-dome", "name" : "Under the Dome", "type" : "Scripted", "language" : "English", "genres" : [ "Drama", "Science-Fiction", "Thriller" ], "status" : "Ended", "runtime" : 60, "premiered" : "2013-06-24", "officialSite" : "http://www.cbs.com/shows/under-the-dome/", "schedule" : { "time" : "22:00", "days" : [ "Thursday" ] }, "rating" : { "average" : 6.5 }, "weight" : 91, "network" : { "id" : 2, "name" : "CBS", "country" : { "name" : "United States", "code" : "US", "timezone" : "America/New_York" } }, "webChannel" : null, "externals" : { "tvrage" : 25988, "thetvdb" : 264492, "imdb" : "tt1553656" }, "image" : { "medium" : "http://static.tvmaze.com/uploads/images/medium_portrait/0/1.jpg", "original" : "http://static.tvmaze.com/uploads/images/original_untouched/0/1.jpg" }, "summary" : "<p><b>Under the Dome</b> is the story of a small town that is suddenly and inexplicably sealed off from the rest of the world by an enormous transparent dome. The town's inhabitants must deal with surviving the post-apocalyptic conditions while searching for answers about the dome, where it came from and if and when it will go away.</p>", "updated" : 1529612668, "_links" : { "self" : { "href" : "http://api.tvmaze.com/shows/1" }, "previousepisode" : { "href" : "http://api.tvmaze.com/episodes/185054" } } }
+
+> db.shows.countDocuments({});
+3

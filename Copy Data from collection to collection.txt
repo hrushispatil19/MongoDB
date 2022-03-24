@@ -1,0 +1,16 @@
+Logic:
+> db.persons.find().forEach(function(doc){ db.bkpPersons.insertOne(doc);});
+
+> db.persons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
+
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
