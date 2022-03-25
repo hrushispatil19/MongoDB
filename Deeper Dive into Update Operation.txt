@@ -333,6 +333,26 @@ With arrayFilters options: (It will update only documents in an array which sati
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 9 }, { "name" : "Bikes", "rating" : 7 } ] }
 
 
+MISC: $[] and $[el] combination.
+
+> db.bkpPersons.updateOne({hobbies: {$elemMatch: {name: "Bikes",rating: 8}}},{$set: {"hobbies.$[el].name":"Reading","hobbies.$[].rating": 7}},{arrayFilters:[{"el.name":"Bikes","el.rating": {$eq: 8}}]})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 7 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
+> db.bkpPersons.updateOne({hobbies: {$elemMatch: {name: "Cars",rating: 7}}},{$set: {"hobbies.$[el].name":"Writing","hobbies.$[el].rating": 9}},{arrayFilters:[{"el.name":"Cars","el.rating": {$eq: 7}}]})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
+
+
 * Adding Elements in an Array: ($push)
 ---------------------------------------
 Adding one element\document in an array:-
@@ -348,7 +368,7 @@ Adding multiple elements\documents in an array:- (with $push operator, use $each
 > db.persons.updateOne({name: "Sam"},{$push: {hobbies: {$each: [{name: "Bikes",rating: 8},{name: "Yoga",rating: 9}]}}})
 { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 > db.persons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "ratig" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ { "name" : "Cooking", "rating" : 7 }, { "name" : "Cooking", "rating" : 6 } ] }
 { "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 9 }, { "name" : "Bikes", "rating" : 7 } ] }
@@ -357,42 +377,60 @@ Adding multiple elements\documents in an array:- (with $push operator, use $each
 * Adding Unique Elements\Documents in an Array : ($addToSet)
 ------------------------------------------------------------
 > db.persons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "ratig" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ { "name" : "Cooking", "rating" : 7 }, { "name" : "Cooking", "rating" : 6 } ] }
 { "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 9 }, { "name" : "Bikes", "rating" : 7 } ] }
 > db.persons.updateOne({name: "Mini"},{$addToSet: {hobbies: {$each: [{name: "Bikes",rating: 7},{name: "Yoga",rating: 8},{name: "Yoga",rating: 9},{name: "Gardening",rating: 10}]}}})
 { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 > db.persons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "ratig" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ { "name" : "Cooking", "rating" : 7 }, { "name" : "Cooking", "rating" : 6 } ] }
 { "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 9 }, { "name" : "Bikes", "rating" : 7 }, { "name" : "Yoga", "rating" : 8 }, { "name" : "Gardening", "rating" : 10 } ] }
 
-Note: $addToSet operator will not insert duplicate elements or documents.
+Note: $addToSet operator will not insert duplicate elements or documents. If Sequence of fields in document is different or any field value is different, then it will add it.
 If array has multiple documents, it will check if specified document (whole document) is already present or not.
 If it's exact same as existing document it will not insert else it will add it.
+
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
+> db.bkpPersons.updateOne({name:"Mini"},{$addToSet: {hobbies:{$each:  [{name: "Yoga",rating:8},{rating: 8,name:"Yoga"}]}}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 }, { "rating" : 8, "name" : "Yoga" } ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
+>
 
 * Removing Elements in an Array: ($pop, $pull, $pullAll)
 ------------------------------------------------------------
 $pop: It can have 2 values -> 1 (remove last element) or -1 (remove first element)
 
 > db.persons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "ratig" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ { "name" : "Cooking", "rating" : 7 }, { "name" : "Cooking", "rating" : 6 } ] }
 { "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
-{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 9 }, { "name" : "Bikes", "rating" : 7 }, { "name" : "Yoga", "rating" : 8 }, { "name" : "Gardening", "rating" : 10 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 9 }, { "name" : "Bikes", "rating" : 7 }, 
+{ "name" : "Yoga", "rating" : 8 }, { "name" : "Gardening", "rating" : 10 } ] }
 > db.persons.updateOne({name: "Mini"},{$pop: {hobbies: -1}})
 { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 > db.persons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "ratig" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ { "name" : "Cooking", "rating" : 7 }, { "name" : "Cooking", "rating" : 6 } ] }
 { "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
-{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Bikes", "rating" : 7 }, { "name" : "Yoga", "rating" : 8 }, { "name" : "Gardening", "rating" : 10 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Bikes", "rating" : 7 }, { "name" : "Yoga", "rating" : 8 },
+ { "name" : "Gardening", "rating" : 10 } ] }
 > db.persons.updateOne({name: "Mini"},{$pop: {hobbies: 1}})
 { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 > db.persons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "ratig" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ { "name" : "Cooking", "rating" : 7 }, { "name" : "Cooking", "rating" : 6 } ] }
 { "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Bikes", "rating" : 7 }, { "name" : "Yoga", "rating" : 8 } ] }
@@ -401,7 +439,7 @@ $pull:
 > db.persons.updateOne({name: "Mini"},{$pull: {hobbies: {name: "Bikes"}}}) #Note: we can specify whole document or any field in that document.
 { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 > db.persons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "ratig" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Reading", "rating" : 8 }, { "name" : "Hiking", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 }, { "name" : "Yoga", "rating" : 9 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ { "name" : "Cooking", "rating" : 7 }, { "name" : "Cooking", "rating" : 6 } ] }
 { "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
@@ -431,7 +469,8 @@ Note: For $pullAll operator, entire document should be mentioned and sequence of
 > db.persons.updateOne({name: "Sam"},{$pullAll: {hobbies: [{name: "Reading",rating:8},{rating:6,name:"Hiking"},{name: "Yoga",rating:9}]}})
 { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 > db.persons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Hiking", "rating" : 6 }, { "name" : "Bikes", "rating" : 8 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 6 }, { "name" : "Hiking", "rating" : 6 }, 
+{ "name" : "Bikes", "rating" : 8 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ ] }
 { "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
@@ -514,5 +553,92 @@ $push:
 { "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
 
 Updating matched array elements and all array elements:
+----------------------------------------------------------------
+> db.bkpPersons.findOne({name:"Roy"})
+{
+        "_id" : ObjectId("623ce8306f019ec091fb78ec"),
+        "name" : "Roy",
+        "age" : 25,
+        "hobbies" : [
+                "Reading&Writing",
+                "Fishing",
+                "Painting"
+        ]
+}
+> db.bkpPersons.updateMany({name:"Roy"},{$set: {"hobbies.$[]": "Reading"}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.bkpPersons.findOne({name:"Roy"})
+{
+        "_id" : ObjectId("623ce8306f019ec091fb78ec"),
+        "name" : "Roy",
+        "age" : 25,
+        "hobbies" : [
+                "Reading",
+                "Reading",
+                "Reading"
+        ]
+}
+
+> db.bkpPersons.updateOne({hobbies: "Reading",name: "Roy"},{$set: {"hobbies.$": "Writing"}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.bkpPersons.findOne({name:"Roy"})
+{
+        "_id" : ObjectId("623ce8306f019ec091fb78ec"),
+        "name" : "Roy",
+        "age" : 25,
+        "hobbies" : [
+                "Writing",
+                "Reading",
+                "Reading"
+        ]
+}
 
 Updating Specified element in array:
+------------------------------------
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ "Painting", "Reading" ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Writing", "Reading", "Reading" ] }
+
+> db.bkpPersons.updateOne({name:"Roy"},{$set: {"hobbies.$[el]": "Bikes"}},{arrayFilters: [{el: "Cars"}]})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 0 }
+
+> db.bkpPersons.updateOne({name:"Ron"},{$set: {"hobbies.$[el]": "Bikes"}},{arrayFilters: [{el: "Cars"}]})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Bikes", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ "Painting", "Reading" ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Writing", "Reading", "Reading" ] }
+
+$all: 
+-----------
+$all operator updates the documents which matches all specified elements or documents in array field.
+
+> db.bkpPersons.updateOne({name:"Sam",hobbies: {$all: [{name:"Reading",rating: 7}]}},{$push: {hobbies: {name: "Cooking",rating: 5}}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 }, { "name" : "Cooking", "rating" : 5 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Bikes", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ "Painting", "Reading" ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Writing", "Reading", "Reading" ] }
+
+
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ "Painting", "Reading" ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
+> db.bkpPersons.updateOne({hobbies: {$all: ["Reading","Writing"]},name:"Roy"},{$set: {hobbies: ["Reading&Writing"]}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.bkpPersons.find()
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ "Painting", "Reading" ] }
+{ "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading&Writing" ] }
