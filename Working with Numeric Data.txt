@@ -1,0 +1,194 @@
+Numeric Data Types: It depends on programming language we use for development.
+
+In our case we are using mongo shell which is based on javascript. JS does not able to differentiate between int and floats.
+It will take every number as 64 bit float by default.
+Integers: int (32 bit) or long (64 bit)
+Doubles: double (64 bit) and high precision double (128 bit)
+
+> db.stats()
+{
+        "db" : "numDB",
+        "collections" : 1,
+        "views" : 0,
+        "objects" : 0,
+        "avgObjSize" : 0,
+        "dataSize" : 0,
+        "storageSize" : 4096,
+        "indexes" : 1,
+        "indexSize" : 4096,
+        "totalSize" : 8192,
+        "scaleFactor" : 1,
+        "fsUsedSize" : 123689721856,
+        "fsTotalSize" : 128286183424,
+        "ok" : 1
+}
+
+int (32 bit): NumberInt()
+----------------------------
+syntax: fieldName: NumberInt("number" or number)
+example:
+> db.numbers.insertOne({age: NumberInt("24")})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f1152d73173aad664bcf4")
+}
+> db.numbers.find()
+{ "_id" : ObjectId("623f14f6d73173aad664bcf8"), "age" : 24 }
+
+DB stats: Data size is 31 bytes.
+> db.stats()
+{
+        "db" : "numDB",
+        "collections" : 1,
+        "views" : 0,
+        "objects" : 1,
+        "avgObjSize" : 31,
+        "dataSize" : 31,
+        "storageSize" : 4096,
+        "indexes" : 1,
+        "indexSize" : 4096,
+        "totalSize" : 8192,
+        "scaleFactor" : 1,
+        "fsUsedSize" : 123687788544,
+        "fsTotalSize" : 128286183424,
+        "ok" : 1
+}
+
+Without NumberInt(): It will take it as double (64 bit). See data size is 35 bytes.
+> db.numbers.deleteOne({})
+{ "acknowledged" : true, "deletedCount" : 1 }
+> db.numbers.insertOne({age: 24})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f111cd73173aad664bcf3")
+}
+> db.stats()
+{
+        "db" : "numDB",
+        "collections" : 1,
+        "views" : 0,
+        "objects" : 1,
+        "avgObjSize" : 35,
+        "dataSize" : 35,
+        "storageSize" : 4096,
+        "indexes" : 1,
+        "indexSize" : 4096,
+        "totalSize" : 8192,
+        "scaleFactor" : 1,
+        "fsUsedSize" : 123689041920,
+        "fsTotalSize" : 128286183424,
+        "ok" : 1
+}
+
+If we specify number more than it's range, it will give incorrect result.
+> db.numbers.insertOne({age: NumberInt("2147483648")})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f156ed73173aad664bcf9")
+}
+> db.numbers.find()
+{ "_id" : ObjectId("623f14f6d73173aad664bcf8"), "age" : 24 }
+{ "_id" : ObjectId("623f156ed73173aad664bcf9"), "age" : -2147483648 }
+> db.numbers.insertOne({age: NumberInt("2147483649")})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f157dd73173aad664bcfa")
+}
+> db.numbers.find()
+{ "_id" : ObjectId("623f14f6d73173aad664bcf8"), "age" : 24 }
+{ "_id" : ObjectId("623f156ed73173aad664bcf9"), "age" : -2147483648 }
+{ "_id" : ObjectId("623f157dd73173aad664bcfa"), "age" : -2147483647 }
+> db.numbers.insertOne({age: NumberInt("214748365298")})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f15e3d73173aad664bcfe")
+}
+> db.numbers.find()
+{ "_id" : ObjectId("623f14f6d73173aad664bcf8"), "age" : 24 }
+{ "_id" : ObjectId("623f156ed73173aad664bcf9"), "age" : -2147483648 }
+{ "_id" : ObjectId("623f157dd73173aad664bcfa"), "age" : -2147483647 }
+{ "_id" : ObjectId("623f15e3d73173aad664bcfe"), "age" : 498 } 
+
+
+Long (64 bit): NumberLong()
+-----------------------------
+syntax: fieldName: NumberLong("number")
+example:
+> db.numbers.insertOne({profit: NumberLong("286723453689")})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f1486d73173aad664bcf7")
+}
+> db.numbers.find()
+{ "_id" : ObjectId("623f1486d73173aad664bcf7"), "profit" : NumberLong("286723453689") }
+
+In some cases, if we pass number without double quotes it will give below exception. 
+So better is to use "" inside NumberLong() and NumberDecimal().
+
+> db.numbers.insertOne({profit: NumberLong(9223372036854775807)})
+Error: number passed to NumberLong must be representable as an int64_t :
+@(shell):1:28
+> db.numbers.insertOne({profit: NumberLong("9223372036854775807")})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f1971d73173aad664bd00")
+}
+> db.numbers.find()
+{ "_id" : ObjectId("623f1486d73173aad664bcf7"), "profit" : NumberLong("286723453689") }
+{ "_id" : ObjectId("623f1971d73173aad664bd00"), "profit" : NumberLong("9223372036854775807") }
+
+
+Double (64 bit): 
+-------------------
+By default, JS will store number as double (64 bit).
+
+> db.numbers.insertOne({age: 23.2})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f1c0dd73173aad664bd02")
+}
+> db.numbers.find()
+{ "_id" : ObjectId("623f1c0dd73173aad664bd02"), "age" : 23.2 }
+
+Note: We can see here age is showing 23.2 but inside it is stored as 23.19999999999999998
+It will give inaccuracy in results on calculations.
+
+> db.numbers.insertOne({a: 0.3, b:0.1})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f1e40d73173aad664bd04")
+}
+> db.numbers.aggregate([{$project: {result: {$subtract: ["$a","$b"]}}}])
+{ "_id" : ObjectId("623f1e40d73173aad664bd04"), "result" : 0.19999999999999998 }
+
+So if we want to perform various calculations and need correct result as expected use high precision double.
+
+High Precision Double (128 bit): NumberDecimal()
+---------------------------------------------------------
+
+> db.numbers.insertOne({profit: NumberDecimal("2345678934894.742712839")})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f2198d73173aad664bd05")
+}
+> db.numbers.find()
+{ "_id" : ObjectId("623f2198d73173aad664bd05"), "profit" : NumberDecimal("2345678934894.742712839") }
+
+Calculations:
+> db.numbers.insertOne({a: 0.3, b:0.1})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f21afd73173aad664bd06")
+}
+> db.numbers.aggregate([{$project: {result: {$subtract: ["$a","$b"]}}}])
+{ "_id" : ObjectId("623f21afd73173aad664bd06"), "result" : 0.19999999999999998 }
+
+> db.numbers.insertOne({a:NumberDecimal("0.3"),b: NumberDecimal("0.1")})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("623f222cd73173aad664bd07")
+}
+> db.numbers.aggregate([{$project: {result: {$subtract: ["$a","$b"]}}}])
+{ "_id" : ObjectId("623f21afd73173aad664bd06"), "result" : 0.19999999999999998 }
+{ "_id" : ObjectId("623f222cd73173aad664bd07"), "result" : NumberDecimal("0.2") }
+
