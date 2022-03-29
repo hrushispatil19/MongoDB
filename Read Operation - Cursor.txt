@@ -353,11 +353,11 @@ Misc Ex. of sort():
 { "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "title" : "Supercharged Teaching", "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 }, "visitors" : 370000, "expectedVisitors" : 1000000, "genre" : [ "thriller", "action" ], "ratings" : [ 10, 9, 9 ] }
 { "_id" : ObjectId("624314a6ee61ae4039217391"), "title" : "Excellent Teaching", "meta" : { "rating" : 9.3 } }
 
-> db.moviesStarts.find({},{meta: 1}).sort({"meta.rating":1,title: -1})
-{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "meta" : { "rating" : 8, "aired" : 2014, "runtime" : 90 } }
-{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 } }
-{ "_id" : ObjectId("624314a6ee61ae4039217391"), "meta" : { "rating" : 9.3 } }
-{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "meta" : { "rating" : 9.5, "aired" : 2018, "runtime" : 100 } }
+> db.moviesStarts.find({},{meta: 1,title:1}).sort({"meta.rating":1,title: -1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "title" : "Teach me if you can", "meta" : { "rating" : 8, "aired" : 2014, "runtime" : 90 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "title" : "Supercharged Teaching", "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 } }
+{ "_id" : ObjectId("624314a6ee61ae4039217391"), "title" : "Excellent Teaching", "meta" : { "rating" : 9.3 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "title" : "The Last Student Returns", "meta" : { "rating" : 9.5, "aired" : 2018, "runtime" : 100 } }
 
 
 * Projection on an Array:
