@@ -1,0 +1,414 @@
+* Cursor and its methods:
+In MongoDB, find() method gives us cursor. A cursor is basically pointer to documents which has query we wrote as stored. 
+It communicates with MongoDB server and fetches data one by one. It communicates with server in request batch.
+
+Cursor provides us different functions to iterate over result set and get information related to it.
+
+count(): Returns number of documents that are referenced by cursor.
+-------
+> db.moviesStarts.find().count()
+3
+
+hasNext(): Returns true, if cursor is still having data objects to iterate further.
+----------
+> db.moviesStarts.find().hasNext()
+true
+
+isExhausted(): Returns true, if cursor is closed and there are no objects in the batch or referenced by cursor.
+--------------
+> db.moviesStarts.find().isExhausted()
+false
+
+next(): It returns next document from result set.
+-------
+> var rset= db.moviesStarts.find();
+> rset.next()
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"),
+        "title" : "Teach me if you can",
+        "meta" : {
+                "rating" : 8,
+                "aired" : 2014,
+                "runtime" : 90
+        },
+        "visitors" : 590378,
+        "expectedVisitors" : 500000,
+        "genre" : [
+                "action",
+                "thriller"
+        ],
+        "ratings" : [
+                8,
+                8
+        ]
+}
+> rset.next()
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fca"),
+        "title" : "The Last Student Returns",
+        "meta" : {
+                "rating" : 9.5,
+                "aired" : 2018,
+                "runtime" : 100
+        },
+        "visitors" : 1300000,
+        "expectedVisitors" : 1550000,
+        "genre" : [
+                "thriller",
+                "drama",
+                "action"
+        ],
+        "ratings" : [
+                10,
+                9
+        ]
+}
+> rset.next()
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"),
+        "title" : "Supercharged Teaching",
+        "meta" : {
+                "rating" : 9.3,
+                "aired" : 2016,
+                "runtime" : 60
+        },
+        "visitors" : 370000,
+        "expectedVisitors" : 1000000,
+        "genre" : [
+                "thriller",
+                "action"
+        ],
+        "ratings" : [
+                10,
+                9,
+                9
+        ]
+}
+> rset.isExhausted()
+true
+
+itcount(): It returns count of documents remaining in the cursor.
+----------
+So there are 3 objects referenced by cursor, so will iterate for one time and cursor will go to second object/document.
+It should return itcount as 2.
+
+> var rset= db.moviesStarts.find();
+> rset.next()
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"),
+        "title" : "Teach me if you can",
+        "meta" : {
+                "rating" : 8,
+                "aired" : 2014,
+                "runtime" : 90
+        },
+        "visitors" : 590378,
+        "expectedVisitors" : 500000,
+        "genre" : [
+                "action",
+                "thriller"
+        ],
+        "ratings" : [
+                8,
+                8
+        ]
+}
+> rset.itcount()
+2
+
+pretty(): It displays result in readable format.
+---------
+> db.moviesStarts.find().pretty()
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"),
+        "title" : "Teach me if you can",
+        "meta" : {
+                "rating" : 8,
+                "aired" : 2014,
+                "runtime" : 90
+        },
+        "visitors" : 590378,
+        "expectedVisitors" : 500000,
+        "genre" : [
+                "action",
+                "thriller"
+        ],
+        "ratings" : [
+                8,
+                8
+        ]
+}
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fca"),
+        "title" : "The Last Student Returns",
+        "meta" : {
+                "rating" : 9.5,
+                "aired" : 2018,
+                "runtime" : 100
+        },
+        "visitors" : 1300000,
+        "expectedVisitors" : 1550000,
+        "genre" : [
+                "thriller",
+                "drama",
+                "action"
+        ],
+        "ratings" : [
+                10,
+                9
+        ]
+}
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"),
+        "title" : "Supercharged Teaching",
+        "meta" : {
+                "rating" : 9.3,
+                "aired" : 2016,
+                "runtime" : 60
+        },
+        "visitors" : 370000,
+        "expectedVisitors" : 1000000,
+        "genre" : [
+                "thriller",
+                "action"
+        ],
+        "ratings" : [
+                10,
+                9,
+                9
+        ]
+}
+
+toArray(): It returns array of all documents from or referenced by cursor.
+----------
+> db.moviesStarts.find().toArray()
+[
+        {
+                "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"),
+                "title" : "Teach me if you can",
+                "meta" : {
+                        "rating" : 8,
+                        "aired" : 2014,
+                        "runtime" : 90
+                },
+                "visitors" : 590378,
+                "expectedVisitors" : 500000,
+                "genre" : [
+                        "action",
+                        "thriller"
+                ],
+                "ratings" : [
+                        8,
+                        8
+                ]
+        },
+        {
+                "_id" : ObjectId("6241dd7d41cf6865f57c7fca"),
+                "title" : "The Last Student Returns",
+                "meta" : {
+                        "rating" : 9.5,
+                        "aired" : 2018,
+                        "runtime" : 100
+                },
+                "visitors" : 1300000,
+                "expectedVisitors" : 1550000,
+                "genre" : [
+                        "thriller",
+                        "drama",
+                        "action"
+                ],
+                "ratings" : [
+                        10,
+                        9
+                ]
+        },
+        {
+                "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"),
+                "title" : "Supercharged Teaching",
+                "meta" : {
+                        "rating" : 9.3,
+                        "aired" : 2016,
+                        "runtime" : 60
+                },
+                "visitors" : 370000,
+                "expectedVisitors" : 1000000,
+                "genre" : [
+                        "thriller",
+                        "action"
+                ],
+                "ratings" : [
+                        10,
+                        9,
+                        9
+                ]
+        }
+]
+
+forEach(): This method applies a JavaScript function to each document from the cursor.
+----------
+> db.moviesStarts.find().forEach(el => {printjson(el)})
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"),
+        "title" : "Teach me if you can",
+        "meta" : {
+                "rating" : 8,
+                "aired" : 2014,
+                "runtime" : 90
+        },
+        "visitors" : 590378,
+        "expectedVisitors" : 500000,
+        "genre" : [
+                "action",
+                "thriller"
+        ],
+        "ratings" : [
+                8,
+                8
+        ]
+}
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fca"),
+        "title" : "The Last Student Returns",
+        "meta" : {
+                "rating" : 9.5,
+                "aired" : 2018,
+                "runtime" : 100
+        },
+        "visitors" : 1300000,
+        "expectedVisitors" : 1550000,
+        "genre" : [
+                "thriller",
+                "drama",
+                "action"
+        ],
+        "ratings" : [
+                10,
+                9
+        ]
+}
+{
+        "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"),
+        "title" : "Supercharged Teaching",
+        "meta" : {
+                "rating" : 9.3,
+                "aired" : 2016,
+                "runtime" : 60
+        },
+        "visitors" : 370000,
+        "expectedVisitors" : 1000000,
+        "genre" : [
+                "thriller",
+                "action"
+        ],
+        "ratings" : [
+                10,
+                9,
+                9
+        ]
+}
+
+> db.moviesStarts.find().forEach(el => {printjson(el.title)})
+"Teach me if you can"
+"The Last Student Returns"
+"Supercharged Teaching"
+
+> db.moviesStarts.find().forEach(el => {printjson(Math.max(el.visitors,el.expectedVisitors))})
+590378
+1550000
+1000000
+
+sort(): This method sorts all documents with specified order on the fields.
+-------
+desc. order:
+> db.moviesStarts.find({},{meta: 1}).sort({"meta.rating":-1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "meta" : { "rating" : 9.5, "aired" : 2018, "runtime" : 100 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "meta" : { "rating" : 8, "aired" : 2014, "runtime" : 90 } }
+asc. order:
+> db.moviesStarts.find({},{meta: 1}).sort({"meta.rating":1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "meta" : { "rating" : 8, "aired" : 2014, "runtime" : 90 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "meta" : { "rating" : 9.5, "aired" : 2018, "runtime" : 100 } }
+
+limit(): This method is used to specify maximum number of documents that cursor will return.
+--------
+> db.moviesStarts.find({},{meta: 1}).limit(2)
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "meta" : { "rating" : 8, "aired" : 2014, "runtime" : 90 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "meta" : { "rating" : 9.5, "aired" : 2018, "runtime" : 100 } }
+
+skip(): This method skips specified number of documents and returns remaining one.
+-------
+> db.moviesStarts.find({},{meta: 1}).skip(2)
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 } }
+
+Misc Ex. of sort():
+> db.moviesStarts.insertOne({"title" : "Excellent Teaching", meta: {"rating" : 9.3}})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("624314a6ee61ae4039217391")
+}
+> db.moviesStarts.find()
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "title" : "Teach me if you can", "meta" : { "rating" : 8, "aired" : 2014, "runtime" : 90 }, "visitors" : 590378, "expectedVisitors" : 500000, "genre" : [ "action", "thriller" ], "ratings" : [ 8, 8 ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "title" : "The Last Student Returns", "meta" : { "rating" : 9.5, "aired" : 2018, "runtime" : 100 }, "visitors" : 1300000, "expectedVisitors" : 1550000, "genre" : [ "thriller", "drama", "action" ], "ratings" : [ 10, 9 ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "title" : "Supercharged Teaching", "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 }, "visitors" : 370000, "expectedVisitors" : 1000000, "genre" : [ "thriller", "action" ], "ratings" : [ 10, 9, 9 ] }
+{ "_id" : ObjectId("624314a6ee61ae4039217391"), "title" : "Excellent Teaching", "meta" : { "rating" : 9.3 } }
+
+> db.moviesStarts.find({},{meta: 1}).sort({"meta.rating":1,title: -1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "meta" : { "rating" : 8, "aired" : 2014, "runtime" : 90 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 } }
+{ "_id" : ObjectId("624314a6ee61ae4039217391"), "meta" : { "rating" : 9.3 } }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "meta" : { "rating" : 9.5, "aired" : 2018, "runtime" : 100 } }
+
+
+* Projection on an Array:
+
+> db.moviesStarts.find()
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "title" : "Teach me if you can", "meta" : { "rating" : 8, "aired" : 2014, "runtime" : 90 }, "visitors" : 590378, "expectedVisitors" : 500000, "genre" : [ "action", "thriller" ], "ratings" : [ 8, 8 ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "title" : "The Last Student Returns", "meta" : { "rating" : 9.5, "aired" : 2018, "runtime" : 100 }, "visitors" : 1300000, "expectedVisitors" : 1550000, "genre" : [ "thriller", "drama", "action" ], "ratings" : [ 10, 9 ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "title" : "Supercharged Teaching", "meta" : { "rating" : 9.3, "aired" : 2016, "runtime" : 60 }, "visitors" : 370000, "expectedVisitors" : 1000000, "genre" : [ "thriller", "action" ], "ratings" : [ 10, 9, 9 ] }
+{ "_id" : ObjectId("624314a6ee61ae4039217391"), "title" : "Excellent Teaching", "meta" : { "rating" : 9.3 } }
+
+> db.moviesStarts.find({},{genre: 1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "genre" : [ "action", "thriller" ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "genre" : [ "thriller", "drama", "action" ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "genre" : [ "thriller", "action" ] }
+{ "_id" : ObjectId("624314a6ee61ae4039217391") }
+
+> db.moviesStarts.find({"genre" :"action"},{"genre.$":1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "genre" : [ "action" ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "genre" : [ "action" ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "genre" : [ "action" ] }
+> db.moviesStarts.find({"genre" :"thriller"},{"genre.$":1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "genre" : [ "thriller" ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "genre" : [ "thriller" ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "genre" : [ "thriller" ] }
+
+> db.moviesStarts.find({},{"genre":{$elemMatch: {$eq: "action"}}})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "genre" : [ "action" ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "genre" : [ "action" ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "genre" : [ "action" ] }
+{ "_id" : ObjectId("624314a6ee61ae4039217391") }
+
+$slice: It is projection operator that specifies number of elements that array can return in query result.
+It supports skip and limit slices also.
+
+> db.moviesStarts.find({ratings: {$exists: true}},{"ratings": {$slice: 2},title:1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "title" : "Teach me if you can", "ratings" : [ 8, 8 ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "title" : "The Last Student Returns", "ratings" : [ 10, 9 ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "title" : "Supercharged Teaching", "ratings" : [ 10, 9 ] }
+
+> db.moviesStarts.find({ratings: {$exists: true}},{"ratings": {$slice: [2,1]},title:1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "title" : "Teach me if you can", "ratings" : [ ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "title" : "The Last Student Returns", "ratings" : [ ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "title" : "Supercharged Teaching", "ratings" : [ 9 ] }
+
+> db.moviesStarts.find({ratings: {$exists: true}},{"ratings": {$slice: [1,2]},title:1})
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fc9"), "title" : "Teach me if you can", "ratings" : [ 8 ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fca"), "title" : "The Last Student Returns", "ratings" : [ 9 ] }
+{ "_id" : ObjectId("6241dd7d41cf6865f57c7fcb"), "title" : "Supercharged Teaching", "ratings" : [ 9, 9 ] }
+
+
+
+
+
+
