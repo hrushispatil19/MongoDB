@@ -1,0 +1,256 @@
+* Geospatial data is used to describe information about specific location on earth's surface.
+
+* Adding /Inserting GeoJSON data:
+===================================
+To specify GeoJSON data, use embedded document with
+	- a field name type which specifies the GeoJSON object type (i.e Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, GeometryCollection)
+	- a field name coordinates which is used to specify location on the earth. Coordinates are always expressed using combination of longitude and latitude.
+
+longitude: It describes a position on vertical axis. Valid values are between -180 and 180, inclusive.
+latitude:  It describes a position on horizontal axis. Valid values are between -90 and 90, inclusive.
+
+syntax: <fieldName> : {type: <GeoJSON Type>, coordinates: <coordinates>}
+
+> use geospatial
+switched to db geospatial
+> db.places.insertOne({name: "Mumbai",location: {type: "Point", coordinates: [72.6002924, 19.082038]} })
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("624432dbe0094142bac70828")
+}
+
+> db.places.find().pretty()
+{
+        "_id" : ObjectId("624432dbe0094142bac70828"),
+        "name" : "Mumbai",
+        "location" : {
+                "type" : "Point",
+                "coordinates" : [
+                        72.6002924,
+                        19.082038
+                ]
+        }
+}
+
+* Adding Geospatial Index :
+================================
+
+2dsphere Index:
+----------------
+> db.places.createIndex({location: "2dsphere"})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+
+> db.places.getIndexes()
+[
+        {
+                "v" : 2,
+                "key" : {
+                        "_id" : 1
+                },
+                "name" : "_id_"
+        },
+        {
+                "v" : 2,
+                "key" : {
+                        "location" : "2dsphere"
+                },
+                "name" : "location_2dsphere",
+                "2dsphereIndexVersion" : 3
+        }
+]
+
+2d Index:
+-----------
+> db.indexes.insertOne({name: "M2",location: [72.6002924, 19.082038] })
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62446c0a5b82f380ae52abfd")
+}
+> db.indexes.find()
+{ "_id" : ObjectId("62446c0a5b82f380ae52abfd"), "name" : "M2", "location" : [ 72.6002924, 19.082038 ] }
+
+> db.indexes.createIndex({location: "2d"})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.indexes.getIndexes()
+[
+        {
+                "v" : 2,
+                "key" : {
+                        "_id" : 1
+                },
+                "name" : "_id_"
+        },
+        {
+                "v" : 2,
+                "key" : {
+                        "location" : "2d"
+                },
+                "name" : "location_2d"
+        }
+]
+
+* Running Geo Queries:
+========================
+
+$near: It returns GeoJSON objects which are nearest or in proximity to a point. $near requires a geospatial index.
+
+options assoicated with $near:
+$geometry: It specifies GeoJSON object geometry (i.e Type of GeoJSON Object, Coordinates).
+$minDistance, $maxDistance :
+We can also use $minDistance and $maxDistance options to limits the $near results. This distance is specified in meters.
+$minDistance select documents that are at least specified distance from the center point.
+$maxDistance selects documents that are at most specified distance from the center point.
+
+Example 1: (having 2dsphere index)
+> db.places.find({location: {$near: {$geometry: {type: "Point",coordinates: [72.6002924, 19.082038]}}}})
+{ "_id" : ObjectId("62443c93e0094142bac70829"), "name" : "Mumbai", "location" : { "type" : "Point", "coordinates" : [ 72.6002924, 19.082038 ] } }
+
+Let's add 2 more GeoJSON Objects:
+> db.places.insertMany([{name: "Delhi",location: {type: "Point", coordinates: [65.6002924, 29.082038]}},{name: "Chennai",location: {type: "Point", coordinates: [82.6002924, 39.082038]}}])
+{
+        "acknowledged" : true,
+        "insertedIds" : [
+                ObjectId("624475ac5b82f380ae52abff"),
+                ObjectId("624475ac5b82f380ae52ac00")
+        ]
+} 
+> db.places.find()
+{ "_id" : ObjectId("62443c93e0094142bac70829"), "name" : "Mumbai", "location" : { "type" : "Point", "coordinates" : [ 72.6002924, 19.082038 ] } }
+{ "_id" : ObjectId("624475ac5b82f380ae52abff"), "name" : "Delhi", "location" : { "type" : "Point", "coordinates" : [ 65.6002924, 29.082038 ] } }
+{ "_id" : ObjectId("624475ac5b82f380ae52ac00"), "name" : "Chennai", "location" : { "type" : "Point", "coordinates" : [ 82.6002924, 39.082038 ] } }
+
+> db.places.find({location: {$near: {$geometry: {type: "Point", coordinates:[ 72.6002924, 19.0820398]}, $maxDistance: 500, $minDistance: 0.1}}})
+{ "_id" : ObjectId("62443c93e0094142bac70829"), "name" : "Mumbai", "location" : { "type" : "Point", "coordinates" : [ 72.6002924, 19.082038 ] } }
+
+> db.places.find({location: {$near: {$geometry: {type: "Point", coordinates:[ 72.6002924, 19.0820398]}, $maxDistance: 50000, $minDistance: 0.5}}})
+{ "_id" : ObjectId("62447c415b82f380ae52ac05"), "name" : "Dadar", "location" : { "type" : "Point", "coordinates" : [ 72.8515101, 19.018937 ] } }
+{ "_id" : ObjectId("62447c415b82f380ae52ac06"), "name" : "Chembur", "location" : { "type" : "Point", "coordinates" : [ 72.8992319, 19.0520409 ] } }
+
+> db.places.find({location: {$near: {$geometry: {type: "Point", coordinates:[ 72.6002924, 19.0820398]}, $maxDistance: 30000, $minDistance: 0.5}}})
+{ "_id" : ObjectId("62447c415b82f380ae52ac05"), "name" : "Dadar", "location" : { "type" : "Point", "coordinates" : [ 72.8515101, 19.018937 ] } }
+
+> db.places.find({location: {$near: {$geometry: {type: "Point", coordinates:[ 72.6002924, 19.0820398]}, $maxDistance: 30000}}})
+{ "_id" : ObjectId("62443c93e0094142bac70829"), "name" : "Mumbai", "location" : { "type" : "Point", "coordinates" : [ 72.6002924, 19.082038 ] } }
+{ "_id" : ObjectId("62447c415b82f380ae52ac05"), "name" : "Dadar", "location" : { "type" : "Point", "coordinates" : [ 72.8515101, 19.018937 ] } }
+
+
+Example 2: (having 2d index)
+> db.indexes.find()
+{ "_id" : ObjectId("62446c0a5b82f380ae52abfd"), "name" : "M2", "location" : [ 72.6002924, 19.082038 ] }
+{ "_id" : ObjectId("624471655b82f380ae52abfe"), "name" : "M3", "location" : [ 75.6002924, 29.082038 ] }
+
+> db.indexes.find({location: {$near: [73.6002924, 20.082037]}})
+{ "_id" : ObjectId("62446c0a5b82f380ae52abfd"), "name" : "M2", "location" : [ 72.6002924, 19.082038 ] }
+{ "_id" : ObjectId("624471655b82f380ae52abfe"), "name" : "M3", "location" : [ 75.6002924, 29.082038 ] }
+> db.indexes.find({location: {$near: [74.6002924, 28.082037]}})
+{ "_id" : ObjectId("624471655b82f380ae52abfe"), "name" : "M3", "location" : [ 75.6002924, 29.082038 ] }
+{ "_id" : ObjectId("62446c0a5b82f380ae52abfd"), "name" : "M2", "location" : [ 72.6002924, 19.082038 ] }
+Note: We can see in above queries sequence of location is different. 
+$near will return documents from nearest to farthest. 
+
+> db.indexes.find({location :{$near: [75.9992924,30.082038], $maxDistance: 10}})
+{ "_id" : ObjectId("624471655b82f380ae52abfe"), "name" : "M3", "location" : [ 75.6002924, 29.082038 ] }
+> db.indexes.find({location :{$near: [72,20], $minDistance:0, $maxDistance: 5}})
+{ "_id" : ObjectId("62446c0a5b82f380ae52abfd"), "name" : "M2", "location" : [ 72.6002924, 19.082038 ] }
+
+* Adding More GeoSpatial Data:
+-------------------------------
+> db.locations.insertMany([{name: "V.Wadi", loc: {type: "Point", coordinates: [73.8786604, 18.5730623]}},{name: "I.Nagar", loc: {type: "Point", coordinates: [73.9031222, 18.5808727]}},
+ {name: "Lohegaon", loc: {type: "Point", coordinates: [73.9243224, 18.5968179]}}, {name: "Dhanori", loc: {type: "Point", coordinates: [73.8960841, 18.5967365]}},
+{name: "Wakad", loc: {type: "Point", coordinates: [73.7639906, 18.6046273]}}])
+{
+        "acknowledged" : true,
+        "insertedIds" : [
+                ObjectId("6244ada65b82f380ae52ac07"),
+                ObjectId("6244ada65b82f380ae52ac08"),
+                ObjectId("6244ada65b82f380ae52ac09"),
+                ObjectId("6244ada65b82f380ae52ac0a"),
+		ObjectId("6244b1a35b82f380ae52ac0b")
+        ]
+}
+> db.locations.find()
+{ "_id" : ObjectId("6244ada65b82f380ae52ac07"), "name" : "V.Wadi", "loc" : { "type" : "Point", "coordinates" : [ 73.8786604, 18.5730623 ] } },
+{ "_id" : ObjectId("6244ada65b82f380ae52ac08"), "name" : "I.Nagar", "loc" : { "type" : "Point", "coordinates" : [ 73.9031222, 18.5808727 ] } },
+{ "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } },
+{ "_id" : ObjectId("6244ada65b82f380ae52ac0a"), "name" : "Dhanori", "loc" : { "type" : "Point", "coordinates" : [ 73.8960841, 18.5967365 ] } },
+{ "_id" : ObjectId("6244b1a35b82f380ae52ac0b"), "name" : "Wakad", "loc" : { "type" : "Point", "coordinates" : [ 73.7639906, 18.6046273 ] } }
+>                                                                                                                                                
+
+* Find Places inside certain area:
+===============================================
+$geoWithin: It selects documents with GeoJSON object that exists within specified area.
+
+Let's create area using below coordinates:
+> var p1= [73.9844038, 18.5851032];
+> var p2= [73.9020063, 18.5558132];
+> var p3= [73.8755705, 18.5811982];
+> var p4= [73.9099028, 18.6261011];
+
+> db.locations.find({loc: {$geoWithin: {$geometry: {type: "Polygon", coordinates: [[p1, p2, p3, p4, p1]]}}}})
+{ "_id" : ObjectId("6244ada65b82f380ae52ac08"), "name" : "I.Nagar", "loc" : { "type" : "Point", "coordinates" : [ 73.9031222, 18.5808727 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac0a"), "name" : "Dhanori", "loc" : { "type" : "Point", "coordinates" : [ 73.8960841, 18.5967365 ] } }
+
+* Finding out if user is inside specific area:
+===============================================
+$geoIntersects: It selects documents whose GeoJSON data intersects with specified GeoJSON object.
+
+User Inside Specified Area:
+> db.locations.find({loc: {$geoIntersects: {$geometry: {type: "Point", coordinates: [73.9243224, 18.5968179]}}}})
+{ "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
+
+User Outside Specified Area:
+> db.locations.find({loc: {$geoIntersects: {$geometry: {type: "Point", coordinates: [73.6470892, 18.7038397]}}}})
+>
+
+Creating GeoJSON object of Polygon Type:
+-----------------------------------------------
+> db.areas.insertOne({name: "A Random Area", loc: {type: "Polygon", coordinates: [[[73.9844038, 18.5851032], [73.9020063, 18.5558132], 
+[73.8755705, 18.5811982], [73.9099028, 18.6261011], [73.9844038, 18.5851032]]]}})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("6244bf5d5b82f380ae52ac0c")
+}
+
+User Inside Specified Area:
+> db.areas.find({loc: {$geoIntersects: {$geometry: {type: "Point", coordinates: [73.9243224, 18.5968179]}}}})
+{ "_id" : ObjectId("6244bf5d5b82f380ae52ac0c"), "name" : "A Random Area", "loc" : { "type" : "Polygon", "coordinates" : [ [ [ 73.9844038, 18.5851032 ], [ 73.9020063, 18.5558132 ], [ 73.8755705, 18.5811982 ], [ 73.9099028, 18.6261011 ], [ 73.9844038, 18.5851032 ] ] ] } }
+User Outside Specified Area:
+> db.locations.find({loc: {$geoIntersects: {$geometry: {type: "Point", coordinates: [73.6470892, 18.7038397]}}}})
+>  
+
+* Finding Places Within a certain Radius:
+===============================================
+Distance to Radius: m/3963.2 or km/6378.1
+$centerSphere: It defines center for geospacial query using spherical geometry. Return documents within bound of circle.
+
+> db.locations.find({loc: {$geoWithin: {$centerSphere: [[73.9229490, 18.5997465],1/3963.2]}}})
+{ "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
+
+> db.locations.find({loc: {$geoWithin: {$centerSphere: [[73.9229490, 18.5997465],1.8/3963.2]}}})
+{ "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac0a"), "name" : "Dhanori", "loc" : { "type" : "Point", "coordinates" : [ 73.8960841, 18.5967365 ] } }
+
+> db.locations.find({loc: {$geoWithin: {$centerSphere: [[73.9229490, 18.5997465],2/3963.2]}}})
+{ "_id" : ObjectId("6244ada65b82f380ae52ac08"), "name" : "I.Nagar", "loc" : { "type" : "Point", "coordinates" : [ 73.9031222, 18.5808727 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac0a"), "name" : "Dhanori", "loc" : { "type" : "Point", "coordinates" : [ 73.8960841, 18.5967365 ] } }
+
+> db.locations.find({loc: {$geoWithin: {$centerSphere: [[73.9229490, 18.5997465],20/3963.2]}}})
+{ "_id" : ObjectId("6244ada65b82f380ae52ac07"), "name" : "V.Wadi", "loc" : { "type" : "Point", "coordinates" : [ 73.8786604, 18.5730623 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac08"), "name" : "I.Nagar", "loc" : { "type" : "Point", "coordinates" : [ 73.9031222, 18.5808727 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac0a"), "name" : "Dhanori", "loc" : { "type" : "Point", "coordinates" : [ 73.8960841, 18.5967365 ] } }
+{ "_id" : ObjectId("6244b1a35b82f380ae52ac0b"), "name" : "Wakad", "loc" : { "type" : "Point", "coordinates" : [ 73.7639906, 18.6046273 ] } }
+
+
