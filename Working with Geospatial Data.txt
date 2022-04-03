@@ -103,9 +103,10 @@ switched to db geospatial
 ========================
 
 $near: It returns GeoJSON objects which are nearest or in proximity to a point. $near requires a geospatial index.
+       $near returns the documents from nearest to farthest.
 
-options assoicated with $near:
-$geometry: It specifies GeoJSON object geometry (i.e Type of GeoJSON Object, Coordinates).
+* options assoicated with $near:
+$geometry: It specifies GeoJSON object geometry (i.e Type of GeoJSON Object, Coordinates of location).
 $minDistance, $maxDistance :
 We can also use $minDistance and $maxDistance options to limits the $near results. This distance is specified in meters.
 $minDistance select documents that are at least specified distance from the center point.
@@ -232,7 +233,9 @@ User Outside Specified Area:
 * Finding Places Within a certain Radius:
 ===============================================
 Distance to Radius: m/3963.2 or km/6378.1
-$centerSphere: It defines center for geospacial query using spherical geometry. Return documents within bound of circle.
+Approximate Equatorial radius of the earth : 3963.2 miles / 6378.1 km
+
+$centerSphere: It defines center for geospatial query using spherical geometry. Return documents within bound of circle.
 
 > db.locations.find({loc: {$geoWithin: {$centerSphere: [[73.9229490, 18.5997465],1/3963.2]}}})
 { "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
@@ -253,4 +256,37 @@ $centerSphere: It defines center for geospacial query using spherical geometry. 
 { "_id" : ObjectId("6244ada65b82f380ae52ac0a"), "name" : "Dhanori", "loc" : { "type" : "Point", "coordinates" : [ 73.8960841, 18.5967365 ] } }
 { "_id" : ObjectId("6244b1a35b82f380ae52ac0b"), "name" : "Wakad", "loc" : { "type" : "Point", "coordinates" : [ 73.7639906, 18.6046273 ] } }
 
+* Other Geospatial Operators:
+============================
 
+* $center: It defines center for geospatial query and return documents within bound of circle. 
+----------
+It's only applicable on legacy coordinate pairs, not on GeoJSON objects.
+
+> db.indexes.find({location: {$geoWithin: {$center: [[72.6002924, 19.082038],2]}}})
+{ "_id" : ObjectId("62446c0a5b82f380ae52abfd"), "name" : "M2", "location" : [ 72.6002924, 19.082038 ] }
+
+> db.indexes.find({location: {$geoWithin: {$center: [[72.6002924, 19.082038],20]}}})
+{ "_id" : ObjectId("62446c0a5b82f380ae52abfd"), "name" : "M2", "location" : [ 72.6002924, 19.082038 ] }
+{ "_id" : ObjectId("624471655b82f380ae52abfe"), "name" : "M3", "location" : [ 75.6002924, 29.082038 ] }                                                                                                       
+
+* $nearSphere: It's same as $near. Just $nearSphere calculates distance using spherical geometry.
+---------------
+> db.areas.find({loc: {$nearSphere: {$geometry: {type: "Point", coordinates: [73.9243224, 18.5968179]}}}})
+{ "_id" : ObjectId("6244c17c5b82f380ae52ac0e"), "name" : "A Random Area", "loc" : { "type" : "Polygon", "coordinates" : [ [ [ 73.9844038, 18.5851032 ], [ 73.9020063, 18.5558132 ], 
+[ 73.8755705, 18.5811982 ], [ 73.9099028, 18.6261011 ], [ 73.9844038, 18.5851032 ] ] ] } }
+
+> db.places.find({location: {$nearSphere: {$geometry: {type: "Point", coordinates:[ 72.6002924, 19.0820398]}, $maxDistance: 30000}}})
+{ "_id" : ObjectId("62443c93e0094142bac70829"), "name" : "Mumbai", "location" : { "type" : "Point", "coordinates" : [ 72.6002924, 19.082038 ] } }
+{ "_id" : ObjectId("62447c415b82f380ae52ac05"), "name" : "Dadar", "location" : { "type" : "Point", "coordinates" : [ 72.8515101, 19.018937 ] } }
+
+* $box: It defines rectangle/ box for geospatial query and return documents within bounds of the rectangle.
+--------
+	 _______ [lng, lat]
+	|   .   |
+	|_.____.|
+[lng, lat]
+					       bottom left coordinates,upper right coordinates
+> db.locations.find({loc: {$geoWithin: {$box: [[73.8876732,18.5851035],[73.9492997,18.6098335]]}}})
+{ "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
+{ "_id" : ObjectId("6244ada65b82f380ae52ac0a"), "name" : "Dhanori", "loc" : { "type" : "Point", "coordinates" : [ 73.8960841, 18.5967365 ] } }
