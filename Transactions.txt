@@ -1,0 +1,58 @@
+Transactions:
+Transaction is a group of read/write operations that will succeed only if all operations within succeeds.
+If any operation failed in betwwen transaction, then rollback is performed.
+ 
+In version 4.0, MongoDB supports multi-document transactions on replica sets.
+In version 4.2, MongoDB introduces distributed transactions, which adds support for multi-document transactions on sharded clusters.
+
+Refer Data:
+> use transactions
+switched to db transactions
+> db.users.find()
+{ "_id" : ObjectId("6255d4394e72946082bb66b7"), "userId" : "user_01", "age" : 19 }
+{ "_id" : ObjectId("6255d44d4e72946082bb66b8"), "userId" : "user_02", "age" : 44 }
+> db.posts.find()
+{ "_id" : ObjectId("6255d48c4e72946082bb66b9"), "uid" : "user01", "title" : "My First Post" },
+{ "_id" : ObjectId("6255d49c4e72946082bb66ba"), "uid" : "user01", "title" : "My Second Post" }
+
+
+Steps to perform Transaction in Mongo Shell:
+============================================
+
+- Creating and Starting Transaction Session:
+MongoDB Enterprise replicaSet0:PRIMARY> const session = db.getMongo().startSession();
+MongoDB Enterprise replicaSet0:PRIMARY> session.startTransaction();
+
+- Triggering some queries:
+MongoDB Enterprise replicaSet0:PRIMARY> const users = session.getDatabase("transactions").users;
+MongoDB Enterprise replicaSet0:PRIMARY> const posts = session.getDatabase("transactions").posts;
+MongoDB Enterprise replicaSet0:PRIMARY> users.deleteOne({userId: "user_01"})
+{ "acknowledged" : true, "deletedCount" : 1 }
+MongoDB Enterprise replicaSet0:PRIMARY> posts.deleteMany({uId: "user_01"})
+{ "acknowledged" : true, "deletedCount" : 2 }
+
+- Abort Transaction: If will use abortTransaction(), then transaction will perform rollback. It will revert all in between operations.
+MongoDB Enterprise replicaSet0:PRIMARY> session.abortTransaction();
+Checking data is deleted or not:
+MongoDB Enterprise replicaSet0:PRIMARY> db.users.find()
+{ "_id" : ObjectId("6256779ade652152907b0f1e"), "userId" : "user_01", "age" : 19 }
+{ "_id" : ObjectId("625677a3de652152907b0f1f"), "userId" : "user_02", "age" : 44 }
+MongoDB Enterprise replicaSet0:PRIMARY> db.posts.find()
+{ "_id" : ObjectId("625677cdde652152907b0f20"), "uId" : "user_01", "title" : "My First Post" }
+{ "_id" : ObjectId("625677cdde652152907b0f21"), "uId" : "user_01", "title" : "My Second Post" }
+
+					or
+
+- Commit Transaction: 
+If will use commitTransaction(), then all data changes made in the transaction are saved.
+And if any operations fails in between transaction, then rollback is performed.
+
+MongoDB Enterprise replicaSet0:PRIMARY> session.commitTransaction()
+MongoDB Enterprise replicaSet0:PRIMARY> db.users.find()
+{ "_id" : ObjectId("625677a3de652152907b0f1f"), "userId" : "user_02", "age" : 44 }
+MongoDB Enterprise replicaSet0:PRIMARY> db.posts.find()
+MongoDB Enterprise replicaSet0:PRIMARY>   
+
+- End Transaction Session:
+MongoDB Enterprise replicaSet0:PRIMARY> session.endSession()
+                                                                                                                              
