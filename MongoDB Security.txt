@@ -1,0 +1,333 @@
+Authentication and Authorization: 
+====================================
+
+* Role Based Access Control (RBAC):
+---------------------------------
+To be able to create users we need to
+1) Enable access control :
+C:\Program Files\MongoDB\Server\5.0\bin>mongod --auth
+
+2) Create a User Administrator:
+
+> use admin
+switched to db admin
+> db.createUser({user: "myadmin", pwd: passwordPrompt(), roles: ["userAdminAnyDatabase"]})
+Enter password:
+Successfully added user: { "user" : "myadmin", "roles" : [ "userAdminAnyDatabase" ] }
+>          
+
+*  To Logout Current user:
+> db.logout()
+{ "ok" : 1 }
+
+* To Authenticate User:
+
+Using Cmd Prompt:-
+C:\Program Files\MongoDB\Server\5.0\bin>mongo -u myadmin -p myadmin --authenticationDatabase admin
+MongoDB shell version v5.0.6
+connecting to: mongodb://127.0.0.1:27017/?authSource=admin&compressors=disabled&gssapiServiceName=mongodb
+Implicit session: session { "id" : UUID("61c0a74c-e0c4-4cec-b65e-94a887656ba9") }
+MongoDB server version: 5.0.6
+
+Using Shell:-
+> db.auth("myadmin","myadmin")
+1
+	or
+> db.auth("myadmin",passwordPrompt())
+Enter password:
+1
+
+* Assigning Roles to Users and Databases:
+-----------------------------------------
+
+> use admin
+switched to db admin
+> db.createUser({user: "devApp", pwd: passwordPrompt(), roles: ["readWrite"]})
+Enter password:
+Successfully added user: { "user" : "devApp", "roles" : [ "readWrite" ] }
+
+> db.data.insertOne({name: "Sam"})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("624a038df200bd2d515a952c")
+}
+
+* Updating or Extending Roles:
+-------------------------------------------------
+
+> db.updateUser("devApp", {roles: ["readWrite", {role: "readWrite", db: "security"}, {role: "read", db: "sales"}]})
+				     |__ If DB is not specified, then role will be applied on current DB.
+
+* MISC - User Management Methods
+(Ref. auth(), passwordPrompt(), createUser() and updateUser() methods are already covered in previous topics)
+Get Specified User:
+--------------------
+> db.getUser("devApp")
+{
+        "_id" : "admin.devApp",
+        "userId" : UUID("9ae48e79-445d-45a6-a626-2ed741d4c2f7"),
+        "user" : "devApp",
+        "db" : "admin",
+        "roles" : [
+                {
+                        "role" : "read",
+                        "db" : "sales"
+                },
+                {
+                        "role" : "readWrite",
+                        "db" : "security"
+                },
+                {
+                        "role" : "readWrite",
+                        "db" : "admin"
+                }
+        ],
+        "mechanisms" : [
+                "SCRAM-SHA-1",
+                "SCRAM-SHA-256"
+        ]
+}
+
+Get All Users:
+--------------
+> db.getUsers()
+[
+        {
+                "_id" : "admin.devApp",
+                "userId" : UUID("9ae48e79-445d-45a6-a626-2ed741d4c2f7"),
+                "user" : "devApp",
+                "db" : "admin",
+                "roles" : [
+                        {
+                                "role" : "read",
+                                "db" : "sales"
+                        },
+                        {
+                                "role" : "readWrite",
+                                "db" : "security"
+                        },
+                        {
+                                "role" : "readWrite",
+                                "db" : "admin"
+                        }
+                ],
+                "mechanisms" : [
+                        "SCRAM-SHA-1",
+                        "SCRAM-SHA-256"
+                ]
+        },
+        {
+                "_id" : "admin.myadmin",
+                "userId" : UUID("1f0e9b6d-090b-4bba-aab5-4075f3fad68f"),
+                "user" : "myadmin",
+                "db" : "admin",
+                "roles" : [
+                        {
+                                "role" : "userAdminAnyDatabase",
+                                "db" : "admin"
+                        }
+                ],
+                "mechanisms" : [
+                        "SCRAM-SHA-1",
+                        "SCRAM-SHA-256"
+                ]
+        }
+]
+
+Revoke role from user:
+-----------------------
+> db.getUser("devApp")
+{
+        "_id" : "admin.devApp",
+        "userId" : UUID("036120da-43e0-4d0a-9590-cfb583d152cc"),
+        "user" : "devApp",
+        "db" : "admin",
+        "roles" : [
+               	        {
+                                "role" : "readWrite",
+                                "db" : "persons"
+                        },
+                        {
+                                "role" : "read",
+                                "db" : "sales"
+                        },
+                        {
+                                "role" : "readWrite",
+                                "db" : "admin"
+                        }
+        ],
+        "mechanisms" : [
+                "SCRAM-SHA-1",
+                "SCRAM-SHA-256"
+        ]
+}
+
+> db.revokeRolesFromUser("devApp", [{role: "readWrite",db: "admin"}])  		<-- Role Revoked
+
+> db.getUser("devApp")
+{
+        "_id" : "admin.devApp",
+        "userId" : UUID("036120da-43e0-4d0a-9590-cfb583d152cc"),
+        "user" : "devApp",
+        "db" : "admin",
+        "roles" : [
+                {
+                        "role" : "readWrite",
+                        "db" : "persons"
+                },
+                {
+                        "role" : "read",
+                        "db" : "sales"
+                }
+        ],
+        "mechanisms" : [
+                "SCRAM-SHA-1",
+                "SCRAM-SHA-256"
+        ]
+}
+
+Grant Roles To User:
+---------------------
+> db.grantRolesToUser("devApp", [{role: "readWrite",db: "admin"}])
+> db.getUser("devApp")
+{
+        "_id" : "admin.devApp",
+        "userId" : UUID("036120da-43e0-4d0a-9590-cfb583d152cc"),
+        "user" : "devApp",
+        "db" : "admin",
+        "roles" : [
+                {
+                        "role" : "readWrite",
+                        "db" : "admin"
+                },
+                {
+                        "role" : "readWrite",
+                        "db" : "persons"
+                },
+                {
+                        "role" : "read",
+                        "db" : "sales"
+                }
+        ],
+        "mechanisms" : [
+                "SCRAM-SHA-1",
+                "SCRAM-SHA-256"
+        ]
+}
+
+Drop User: [will use dropUser(uname, writeConcerns) method as removeUser(uname) is deprecated]
+-----------
+> db.dropUser("devApp")
+true
+
+> db.getUsers()
+[
+        {
+                "_id" : "admin.myadmin",
+                "userId" : UUID("1f0e9b6d-090b-4bba-aab5-4075f3fad68f"),
+                "user" : "myadmin",
+                "db" : "admin",
+                "roles" : [
+                        {
+                                "role" : "userAdminAnyDatabase",
+                                "db" : "admin"
+                        }
+                ],
+                "mechanisms" : [
+                        "SCRAM-SHA-1",
+                        "SCRAM-SHA-256"
+                ]
+        }
+]
+
+Drop All Users:
+----------------
+> db.dropAllUsers()
+1
+> db.getUsers()
+[ ]
+
+Change User Password: Syntax - db.changeUserPassword(username, password, writeConcerns)
+---------------------
+> db.changeUserPassword("devApp", passwordPrompt())
+Enter password:
+>  
+
+Adding TLS/SSL Transport Encryption: (TLS : Transport Layer security, SSL : Secure Socket Layer)
+=================================================================================================
+We need to make sure that data transferred from our app to MonogDB Database is secure. 
+MongoDB supports TLS/SSL to encrypt MongoDB network traffic. TSL/SSL ensures that network traffic is readable by
+intended client only. TLS is a successor of SSL and it's more secure.
+Basically TLS and SSL performs same task of encrypting data exchange.
+
+MongoDB uses native TSL/SSL os libraries:
+Windows - Secure Channel
+Linux or BSD - OpenSSL
+Max - Secure Transport
+
+> Generate TLS/SSL Certificate for MongoDB:
+
+- Open Command Prompt or Terminal, run below openssl command (If openssl cmd is not present, then we need to install OpenSSL binaries on our machine)
+
+Microsoft Windows [Version 10.0.18363.2158]
+(c) 2019 Microsoft Corporation. All rights reserved.
+
+H:\MongoDB\DB\OpenSSL-Win64\bin>openssl req -newkey rsa:2048 -new -x509 -days 365 -nodes -out mongodb-cert.crt -keyout mongodb-cert.key
+.......+...+.+.....+....+..+.......+...+..+.+.........+........+.............+............+...+.....+.+.........+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+..............+....+.....+..........+..+.........+...+.+.....+.........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+.+.....+.+...+..+.........+.+.....+.+.....+...+.......+...+..+............+...+..........+...+......+......+..+............+....+..............+......+.+.....+.+............+..+...+.......+.....+....+.....+.+...+........+.........+.+..+......+.......+..+.............+..+.......+.....+....+.....+....+.....+......................+...+...+...+...........+.+...+......+........+.+..+....+.....+.........+....+..................+.....+.......+.....+......+.......+.....+.......+..+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+..+...+........+.+......+...+..+...............+....+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.......+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+.....+...+.......+..+.............+..............+...............+.........+.........+......+.+.........+.....+............+...+.+.....+...................+..+...+.........................+......+........+...+....+......+........+............+....+......+.....+....+...+..+.+.....+............+.+..............+......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]: US
+State or Province Name (full name) [Some-State]: Indiana
+Locality Name (eg, city) []:Indianapolis
+Organization Name (eg, company) [Internet Widgits Pty Ltd]: <Company Name> 
+Organizational Unit Name (eg, section) []: <Company Unit Name>
+Common Name (e.g. server FQDN or YOUR name) []: localhost					<---- Valid Server Address
+Email Address []: abc@gmail.com	 
+
+- Now concatenate certificate and private key to .pem file: (use "type" cmd for windows and "cat" for linux or mac)
+
+H:\MongoDB\DB\OpenSSL-Win64\bin>type mongodb-cert.key mongodb-cert.crt > mongodb.pem
+
+mongodb-cert.key
+
+mongodb-cert.crt
+
+H:\MongoDB\DB\OpenSSL-Win64\bin>
+
+> Connect to MongoDB Instance Using Encryption (tls enabled):
+
+C:\Program Files\MongoDB\Server\5.0\bin>mongo --tls --host localhost --tlsCAFile mongodb.pem
+MongoDB shell version v5.0.6
+connecting to: mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb
+Implicit session: session { "id" : UUID("b2f37844-040c-4475-ae97-38687d146baa") }
+MongoDB server version: 5.0.6
+================
+Warning: the "mongo" shell has been superseded by "mongosh",
+which delivers improved usability and compatibility.The "mongo" shell has been deprecated and will be removed in
+an upcoming release.
+For installation instructions, see
+https://docs.mongodb.com/mongodb-shell/install/
+================
+---
+The server generated these startup warnings when booting:
+        2022-04-09T16:54:45.081+05:30: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+---
+---
+        Enable MongoDB's free cloud-based monitoring service, which will then receive and display
+        metrics about your deployment (disk utilization, CPU, operation statistics, etc).
+
+        The monitoring data will be available on a MongoDB website with a unique URL accessible to you
+        and anyone you share the URL with. MongoDB may use this information to make product
+        improvements and to suggest MongoDB products and deployment options to you.
+
+        To enable free monitoring, run the following command: db.enableFreeMonitoring()
+        To permanently disable this reminder, run the following command: db.disableFreeMonitoring()
+---
+>                                                                                                                              
