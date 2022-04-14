@@ -1,0 +1,146 @@
+What is Replication and Replica Set?
+=====================================
+Replication is process of maintaining copies of data in different data centers or nodes to increase data availability.
+Replica set is a group of mongod instances which maintains same data set. It consist of certain data bearing nodes and single one arbiter node.
+Of these data bearing nodes, there will be single primary dataset node and remaining one are secondary nodes.
+
+Example:
+	   Client (will trigger insert query)
+	     |  
+	     | Req. Send to MongoDB Server
+	     V
+	 App Server
+	     | writes data to
+	     V
+	o Primary Node
+	/	   \ 
+       / 	    \ 
+      V		     V
+o Secondary Node     o Secondary Node  <-- secondaries will asynchronously replicates primary node Oplog(Operation Log) and apply same operations on their dataset.
+
+
+Steps to perform replication: (in Windows)
+=============================
+
+Step 1: Starting the MongoDB Instance
+
+C:\Program Files\MongoDB\Server\5.0\bin>mongod --port 27017 --dbpath H:\LASRGUI\MongoDB\DB\Replication\Primary\data --logpath H:\LASRGUI\MongoDB\DB\Replication\Primary\log\logs.log --replSet replicaSet0
+
+Step 2: Connect to the server with port number 27017
+
+C:\Program Files\MongoDB\Server\5.0\bin>mongo --port 27017
+MongoDB shell version v5.0.6
+connecting to: mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb
+Implicit session: session { "id" : UUID("aeb3958a-dbb7-4f20-a1e1-adb780f97a71") }
+MongoDB server version: 5.0.6
+================
+Warning: the "mongo" shell has been superseded by "mongosh",
+which delivers improved usability and compatibility.The "mongo" shell has been deprecated and will be removed in
+an upcoming release.
+For installation instructions, see
+https://docs.mongodb.com/mongodb-shell/install/
+================
+---
+The server generated these startup warnings when booting:
+        2022-04-12T01:53:18.946+05:30: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+---
+---
+        Enable MongoDB's free cloud-based monitoring service, which will then receive and display
+        metrics about your deployment (disk utilization, CPU, operation statistics, etc).
+
+        The monitoring data will be available on a MongoDB website with a unique URL accessible to you
+        and anyone you share the URL with. MongoDB may use this information to make product
+        improvements and to suggest MongoDB products and deployment options to you.
+
+        To enable free monitoring, run the following command: db.enableFreeMonitoring()
+        To permanently disable this reminder, run the following command: db.disableFreeMonitoring()
+---
+>
+
+Replication Help Options:
+
+> rs.help()
+        rs.status()                                     { replSetGetStatus : 1 } checks repl set status
+        rs.initiate()                                   { replSetInitiate : null } initiates set with default settings
+        rs.initiate(cfg)                                { replSetInitiate : cfg } initiates set with configuration cfg
+        rs.conf()                                       get the current configuration object from local.system.replset
+        rs.reconfig(cfg, opts)                          updates the configuration of a running replica set with cfg, using the given opts (disconnects)
+        rs.reconfigForPSASet(memberIndex, cfg, opts)    updates the configuration of a Primary-Secondary-Arbiter (PSA) replica set while preserving majority writes
+                                                            memberIndex: index of the node being updated; cfg: the desired new config; opts: options passed in with the reconfig
+                                                            Not to be used with every configuration
+                                                            For more information, visit: https://docs.mongodb.com/manual/reference/method/rs.reconfigForPSASet/
+        rs.add(hostportstr)                             add a new member to the set with default attributes (disconnects)
+        rs.add(membercfgobj)                            add a new member to the set with extra attributes (disconnects)
+        rs.addArb(hostportstr)                          add a new member which is arbiterOnly:true (disconnects)
+        rs.stepDown([stepdownSecs, catchUpSecs])        step down as primary (disconnects)
+        rs.syncFrom(hostportstr)                        make a secondary sync from the given member
+        rs.freeze(secs)                                 make a node ineligible to become primary for the time specified
+        rs.remove(hostportstr)                          remove a host from the replica set (disconnects)
+        rs.secondaryOk()                                allow queries on secondary nodes
+
+        rs.printReplicationInfo()                       check oplog size and time range
+        rs.printSecondaryReplicationInfo()              check replica set members and replication lag
+        db.isMaster()                                   check who is primary
+        db.hello()                                      check who is primary
+
+        reconfiguration helpers disconnect from the database so the shell will display
+        an error, even if the command succeeds.
+
+
+Before step 3, exit or close current MongoDB instances/services running.
+Step 3:  Enabling Replication in MongoDB 
+
+> rs.initiate();
+{
+        "info2" : "no configuration specified. Using a default configuration for the set",
+        "me" : "localhost:27017",
+        "ok" : 1
+}
+
+Note: initiate() will enable replication with default settings, we have initiate(conf) method also which 
+initiates replica set with specified configuration.
+> rs.initiate({_id:"priNode",members:[{_id:0,host:"localhost:27017"}]})
+
+replicaSet0:SECONDARY>    (Enter Key)
+If we get different node like above then click on enter once. After that it will show server node as primary.
+
+replicaSet0:PRIMARY>   
+
+Step 4: Creating Secondary nodes (Replica set has max limit of 12 nodes)
+In our case, we are creating a primary node and 2 secondary nodes in replica set. 
+
+- Start secondary server on the port 27027:
+C:\Program Files\MongoDB\Server\5.0\bin>mongod --port 27027 --replSet replicaSet1 --dbpath H:\LASRGUI\MongoDB\DB\Replication\Sec1\data --logpath H:\LASRGUI\MongoDB\DB\Replication\Sec1\log\logs.log
+
+- Logon to secondary server:
+C:\Program Files\MongoDB\Server\5.0\bin>mongo --port 27027
+
+- Start secondary server on the port 27037:
+C:\Program Files\MongoDB\Server\5.0\bin>mongod --port 27037 --replSet replicaSet2 --dbpath H:\LASRGUI\MongoDB\DB\Replication\Sec2\data
+--logpath H:\LASRGUI\MongoDB\DB\Replication\Sec2\log\logs.log
+
+- Logon to secondary server:
+C:\Program Files\MongoDB\Server\5.0\bin>mongo --port 27037
+
+Step 5: Run the following commands on Primary server to add dataset nodes in replica set.
+replicaSet0:PRIMARY> rs.add("localhost:27027")
+replicaSet0:PRIMARY> rs.add("localhost:27037")
+
+Step 6:  Now go to secondary servers and run below command on both the secondary servers. It will mark that node as secondary dataset node.
+replicaSet1:SECONDARY>rs.secondaryOk()  //rs.slaveOk() is deprecated
+replicaSet2:SECONDARY>rs.secondaryOk()
+
+Now, whatever changes are performed on primary will reflect on secondary dataset also.
+Note: We can perform read operations on any node (primary or secondary) but write operations are allowed on primary dataset node only.
+
+replicaSet0:PRIMARY>db.test.insertOne({name: "Sam", age: 19})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62580df71920b29f88b6a5a7")
+}
+
+replicaSet1:SECONDARY>db.test.find()
+{name: "Sam", age: 19}
+
+replicaSet2:SECONDARY>db.test.find()
+{name: "Sam", age: 19}
