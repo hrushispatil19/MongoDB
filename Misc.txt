@@ -1,0 +1,53 @@
+Configuration File Options:
+===========================
+We can configure mongod and mongos instances or options (port, dbpath, logpath, etc.) in default configuration file (i.e. mongod.cfg).
+
+Also we can create custom configuration file (like myConfig.conf) and configure it using below commands:
+
+C:\Program Files\MongoDB\Server\5.0\bin> mongod -f H:\myConfig.conf
+				or
+C:\Program Files\MongoDB\Server\5.0\bin> mongod --config H:\myConfig.conf
+
+myConfig.conf file:
+-------------------
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: H:\data
+  journal:
+    enabled: true
+#  engine:
+#  wiredTiger:
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  H:\data\mongod.log
+
+# network interfaces
+net:
+  port: 27017
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+
+#security:
+
+#operationProfiling:
+
+#replication:
+
+#sharding:
+
+## Enterprise-Only Options:
+
+#auditLog:
+
+#snmp:
+
