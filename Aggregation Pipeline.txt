@@ -1,0 +1,508 @@
+Aggregation Pipeline: (Stages: $match, $group, $sort, $count, $sortByCount, $skip, $limit, $set, $unset, $project)
+=====================
+
+$match: This stage filters and return documents that matches specified condition(s).
+--------
+> db.persons.aggregate([{$match: {gender: "female"}}])
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a1"), "gender" : "female", "name" : { "title" : "mrs", "first" : "پریا", "last" : "پارسا" }, "location" : { "street" : "2889 اجاره دار", "city" : "بوشهر", "state" : "خراسان جنوبی", "postcode" : 32528, "coordinates" : { "latitude" : "4.6625", "longitude" : "34.1689" }, "timezone" : { "offset" : "+3:00", "description" : "Baghdad, Riyadh, Moscow, St. Petersburg" } }, "email" : "پریا.پارسا@example.com", "login" : { "uuid" : "75c0d4dd-3a88-42dd-a7ad-5d39b0d8b4b1", "username" : "orangesnake137", "password" : "1031", "salt" : "NRy5mtiy", "md5" : "76aac038463dbbed95cb107811879981", "sha1" : "7013f5d075efcfc35b1cb18298bd7e81db566af2", "sha256" : "6a2792cf9c0386679eb2ca357bcae567907bcfad0d400a56d4c3dd55203d8c61" }, "dob" : { "date" : "1962-01-10T05:26:30Z", "age" : 56 }, "registered" : { "date" : "2015-03-20T08:41:37Z", "age" : 3 }, "phone" : "053-06884781", "cell" : "0993-557-5092", "id" : { "name" : "", "value" : null }, "picture" : { "large" : "https://randomuser.me/api/portraits/women/52.jpg", "medium" : "https://randomuser.me/api/portraits/med/women/52.jpg", "thumbnail" : "https://randomuser.me/api/portraits/thumb/women/52.jpg" }, "nat" : "IR" }
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a3"), "gender" : "female", "name" : { "title" : "miss", "first" : "maeva", "last" : "wilson" }, "location" : { "street" : "4962 36th ave", "city" : "jasper", "state" : "northwest territories", "postcode" : "U0A 4J6", "coordinates" : { "latitude" : "-31.6359", "longitude" : "111.3806" }, "timezone" : { "offset" : "+9:00", "description" : "Tokyo, Seoul, Osaka, Sapporo, Yakutsk" } }, "email" : "maeva.wilson@example.com", "login" : { "uuid" : "8f2d499c-6a7e-4606-8c58-211fdb880c31", "username" : "smallgoose815", "password" : "weston", "salt" : "TyL1q8hK", "md5" : "bcedea61753320688ea27be01982556d", "sha1" : "9e075df851fdaf292170d8e0a92c19ee37fba0f2", "sha256" : "6f022405c6a384de3ab5cfc98cccdd97570e5b412046d05dfb79c23ae37612fa" }, "dob" : { "date" : "1962-08-11T20:51:07Z", "age" : 56 }, "registered" : { "date" : "2016-10-03T10:02:55Z", "age" : 1 }, "phone" : "727-218-6012", "cell" : "443-382-6538", "id" : { "name" : "", "value" : null }, "picture" : { "large" : "https://randomuser.me/api/portraits/women/96.jpg", "medium" : "https://randomuser.me/api/portraits/med/women/96.jpg", "thumbnail" : "https://randomuser.me/api/portraits/thumb/women/96.jpg" }, "nat" : "CA" }
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a5"), "gender" : "female", "name" : { "title" : "mrs", "first" : "olav", "last" : "oehme" }, "location" : { "street" : "gartenstraße 64", "city" : "nastätten", "state" : "mecklenburg-vorpommern", "postcode" : 93640, "coordinates" : { "latitude" : "-52.8348", "longitude" : "-67.5738" }, "timezone" : { "offset" : "-3:00", "description" : "Brazil, Buenos Aires, Georgetown" } }, "email" : "olav.oehme@example.com", "login" : { "uuid" : "2608c05c-8951-4aee-bcd2-f598c80f32bb", "username" : "heavypeacock371", "password" : "silent", "salt" : "E6R29k0e", "md5" : "587f4392dc06a9fb69a52eae94fd32f2", "sha1" : "82eba68b1fe2407281da5787b9b89505c663b587", "sha256" : "304034638901015d8a7b2fd43530fffc4c7d621ccfab98de935d9c8387198796" }, "dob" : { "date" : "1960-11-28T23:07:18Z", "age" : 57 }, "registered" : { "date" : "2011-05-31T00:24:05Z", "age" : 7 }, "phone" : "0748-6607336", "cell" : "0176-5787554", "id" : { "name" : "", "value" : null }, "picture" : { "large" : "https://randomuser.me/api/portraits/women/6.jpg", "medium" : "https://randomuser.me/api/portraits/med/women/6.jpg", "thumbnail" : "https://randomuser.me/api/portraits/thumb/women/6.jpg" }, "nat" : "DE" }
+
+$group: This stage groups input documents by the specified _id expression and returns a document for each distinct grouping.
+--------
+> db.persons.aggregate([ { $match: {gender: "male"}}, { $group: {_id: {state: "$location.state"}, totalPersonsInState: {$sum : 1}}}])
+{ "_id" : { "state" : "kars" }, "totalPersonsInState" : 2 }
+{ "_id" : { "state" : "İzmir" }, "totalPersonsInState" : 1 }
+{ "_id" : { "state" : "la rioja" }, "totalPersonsInState" : 6 }
+{ "_id" : { "state" : "meath" }, "totalPersonsInState" : 5 }
+{ "_id" : { "state" : "west virginia" }, "totalPersonsInState" : 1 }
+{ "_id" : { "state" : "cambridgeshire" }, "totalPersonsInState" : 1 }
+{ "_id" : { "state" : "maine-et-loire" }, "totalPersonsInState" : 1 }
+{ "_id" : { "state" : "rio grande do norte" }, "totalPersonsInState" : 5 }
+{ "_id" : { "state" : "manisa" }, "totalPersonsInState" : 2 }
+{ "_id" : { "state" : "essonne" }, "totalPersonsInState" : 3 }
+{ "_id" : { "state" : "extremadura" }, "totalPersonsInState" : 7 }
+{ "_id" : { "state" : "cantabria" }, "totalPersonsInState" : 5 }
+{ "_id" : { "state" : "niedersachsen" }, "totalPersonsInState" : 3 }
+{ "_id" : { "state" : "washington" }, "totalPersonsInState" : 3 }
+{ "_id" : { "state" : "tekirdağ" }, "totalPersonsInState" : 2 }
+{ "_id" : { "state" : "rondônia" }, "totalPersonsInState" : 8 }
+{ "_id" : { "state" : "flevoland" }, "totalPersonsInState" : 12 }
+{ "_id" : { "state" : "iğdır" }, "totalPersonsInState" : 1 }
+{ "_id" : { "state" : "northwest territories" }, "totalPersonsInState" : 12 }
+{ "_id" : { "state" : "haute-corse" }, "totalPersonsInState" : 1 }
+Type "it" for more
+
+$sort: This stage will sort input documents by specified order and returns sorted results.
+-------
+> db.persons.aggregate([ { $match: {gender: "male"}}, { $group: {_id: {state: "$location.state"}, totalPersonsInState: {$sum : 1}}}, {$sort: {totalPersonsInState: -1}}])
+{ "_id" : { "state" : "midtjylland" }, "totalPersonsInState" : 28 }
+{ "_id" : { "state" : "hovedstaden" }, "totalPersonsInState" : 25 }
+{ "_id" : { "state" : "nordjylland" }, "totalPersonsInState" : 24 }
+{ "_id" : { "state" : "sjælland" }, "totalPersonsInState" : 24 }
+{ "_id" : { "state" : "tasmania" }, "totalPersonsInState" : 23 }
+{ "_id" : { "state" : "new south wales" }, "totalPersonsInState" : 23 }
+{ "_id" : { "state" : "queensland" }, "totalPersonsInState" : 20 }
+{ "_id" : { "state" : "australian capital territory" }, "totalPersonsInState" : 20 }
+{ "_id" : { "state" : "syddanmark" }, "totalPersonsInState" : 19 }
+{ "_id" : { "state" : "victoria" }, "totalPersonsInState" : 19 }
+{ "_id" : { "state" : "northern territory" }, "totalPersonsInState" : 19 }
+{ "_id" : { "state" : "hessen" }, "totalPersonsInState" : 16 }
+{ "_id" : { "state" : "zeeland" }, "totalPersonsInState" : 16 }
+{ "_id" : { "state" : "alberta" }, "totalPersonsInState" : 16 }
+{ "_id" : { "state" : "prince edward island" }, "totalPersonsInState" : 16 }
+{ "_id" : { "state" : "newfoundland and labrador" }, "totalPersonsInState" : 16 }
+{ "_id" : { "state" : "nunavut" }, "totalPersonsInState" : 15 }
+{ "_id" : { "state" : "western australia" }, "totalPersonsInState" : 15 }
+{ "_id" : { "state" : "south australia" }, "totalPersonsInState" : 15 }
+{ "_id" : { "state" : "danmark" }, "totalPersonsInState" : 15 }
+Type "it" for more
+
+$sortByCount:   It's equivalent to $group + $sort sequence. This stage groups input documents based on value of specified expression 
+--------------  and returns a document in each distinct grouping. Then it will sort documents in descending order. Each output document contains two fields:
+		an _id field contains distinct grouping value and count field contains no. of documents belongs to that grouping.
+
+> db.persons.aggregate([ {$match: {gender: "male"}}, {$sortByCount: "$location.state"} ])
+{ "_id" : "midtjylland", "count" : 28 }
+{ "_id" : "hovedstaden", "count" : 25 }
+{ "_id" : "nordjylland", "count" : 24 }
+{ "_id" : "sjælland", "count" : 24 }
+{ "_id" : "tasmania", "count" : 23 }
+{ "_id" : "new south wales", "count" : 23 }
+{ "_id" : "queensland", "count" : 20 }
+{ "_id" : "australian capital territory", "count" : 20 }
+{ "_id" : "syddanmark", "count" : 19 }
+{ "_id" : "northern territory", "count" : 19 }
+{ "_id" : "victoria", "count" : 19 }
+{ "_id" : "hessen", "count" : 16 }
+{ "_id" : "zeeland", "count" : 16 }
+{ "_id" : "alberta", "count" : 16 }
+{ "_id" : "newfoundland and labrador", "count" : 16 }
+{ "_id" : "prince edward island", "count" : 16 }
+{ "_id" : "nunavut", "count" : 15 }
+{ "_id" : "south australia", "count" : 15 }
+{ "_id" : "western australia", "count" : 15 }
+{ "_id" : "danmark", "count" : 15 }
+Type "it" for more
+
+$count: This stage will return document that contains number of input documents with specified key.
+--------
+> db.persons.aggregate([ {$match: {gender: "male"}}, {$count: "males"}])
+{ "males" : 2435 }
+> db.persons.aggregate([ {$match: {gender: "female"}}, {$count: "gender"}])
+{ "gender" : 2565 }
+> db.persons.aggregate([ {$match: {gender: "male"}}, {$group: {_id: "$location.state", totalPersonsInState: {$sum: 1}}}, {$count: "noOfGroups"} ])
+{ "noOfGroups" : 490 }
+
+
+$project:   This stage passes input documents with only specified fields to the next stage. We can specify inclusion or exclusion of fields, addition of new field or reset 
+----------  value of existing field. 
+
+> db.persons.aggregate([
+... {$match: {gender: "female"}},
+... {$project: {name: 1, phone: 1}}
+... ])
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a1"), "name" : { "title" : "mrs", "first" : "پریا", "last" : "پارسا" }, "phone" : "053-06884781" }
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a3"), "name" : { "title" : "miss", "first" : "maeva", "last" : "wilson" }, "phone" : "727-218-6012" }
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a5"), "name" : { "title" : "mrs", "first" : "olav", "last" : "oehme" }, "phone" : "0748-6607336" }
+
+> db.persons.aggregate([ {$match: {gender: "female"}}, {$project: {name: 1, phone: 1, _id: 0}} ])
+{ "name" : { "title" : "mrs", "first" : "پریا", "last" : "پارسا" }, "phone" : "053-06884781" }
+{ "name" : { "title" : "miss", "first" : "maeva", "last" : "wilson" }, "phone" : "727-218-6012" }
+{ "name" : { "title" : "mrs", "first" : "olav", "last" : "oehme" }, "phone" : "0748-6607336" }
+
+> db.persons.aggregate([ {$match: {gender: "female"}}, {$project: {"name.first": 1, phone: 1, _id: 0}} ])
+{ "name" : { "first" : "پریا" }, "phone" : "053-06884781" }
+{ "name" : { "first" : "maeva" }, "phone" : "727-218-6012" }
+{ "name" : { "first" : "olav" }, "phone" : "0748-6607336" }
+
+> db.persons.aggregate([ {$match: {gender: "female"}}, {$project: { fullName: {$concat: [ "$name.first"," ","$name.last" ]}}} ])
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a1"), "fullName" : "پریا پارسا" }
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a3"), "fullName" : "maeva wilson" }
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6a5"), "fullName" : "olav oehme" }
+
+> db.persons.aggregate([
+... {$match: {gender: "female"}},
+...   {$project:{
+... 	  _id: 0,
+...       gender: 1,
+...       fullName: {
+...       $concat: [
+...           { $toUpper: { $substrCP: ["$name.first", 0, 1]} },
+...           { $substrCP: ["$name.first",1,{$subtract: [{$strLenCP: "$name.first"}, 1]}]},
+...           " ",
+...           { $toUpper: { $substrCP: ["$name.last", 0, 1]} },
+...           { $substrCP: ["$name.last",1,{$subtract: [{$strLenCP: "$name.last"}, 1]}]}
+...       ]
+...       }
+...     }
+...   }
+...  ])
+{ "gender" : "female", "fullName" : "پریا پارسا" }
+{ "gender" : "female", "fullName" : "Maeva Wilson" }
+{ "gender" : "female", "fullName" : "Olav Oehme" }
+{ "gender" : "female", "fullName" : "Madeleine Till" }
+{ "gender" : "female", "fullName" : "Mestan Kaplangı" }
+
+$limit: This stage limits the number of documents passed to the next stage.
+-------
+> db.persons.aggregate([
+... {$match: {gender: "male"}},
+... {$project: {_id: 0, "name.first":1, gender: 1}},
+... {$sort: {"name.first": 1}},
+... {$limit: 5}
+... ])
+{ "gender" : "male", "name" : { "first" : "aapo" } }
+{ "gender" : "male", "name" : { "first" : "aaron" } }
+{ "gender" : "male", "name" : { "first" : "aaron" } }
+{ "gender" : "male", "name" : { "first" : "aaron" } }
+{ "gender" : "male", "name" : { "first" : "aaron" } }
+
+$skip: This stage skips the specified number of documents and returns remaining one to the next stage.
+-------
+> db.persons.aggregate([ {$match: {gender: "male"}}, {$project: {_id: 0, "name.first":1, gender: 1}}, {$sort: {"name.first": 1}}, {$skip: 2420}])
+{ "gender" : "male", "name" : { "first" : "نيما" } }
+{ "gender" : "male", "name" : { "first" : "پارسا" } }
+{ "gender" : "male", "name" : { "first" : "پارسا" } }
+{ "gender" : "male", "name" : { "first" : "پرهام" } }
+{ "gender" : "male", "name" : { "first" : "پرهام" } }
+{ "gender" : "male", "name" : { "first" : "پرهام" } }
+{ "gender" : "male", "name" : { "first" : "پرهام" } }
+{ "gender" : "male", "name" : { "first" : "پرهام" } }
+{ "gender" : "male", "name" : { "first" : "پرهام" } }
+{ "gender" : "male", "name" : { "first" : "پوریا" } }
+{ "gender" : "male", "name" : { "first" : "پوریا" } }
+{ "gender" : "male", "name" : { "first" : "کوروش" } }
+{ "gender" : "male", "name" : { "first" : "کوروش" } }
+{ "gender" : "male", "name" : { "first" : "کوروش" } }
+{ "gender" : "male", "name" : { "first" : "کوروش" } }
+
+$unset: This stage removes/ excludes specified fields from input documents.
+--------
+> db.persons.aggregate([ {$match: {gender: "male"}}, {$project: {_id: 0, "name.first":1, gender: 1}}, {$unset: ["gender"]}])
+{ "name" : { "first" : "zachary" } }
+{ "name" : { "first" : "carl" } }
+{ "name" : { "first" : "victor" } }
+{ "name" : { "first" : "harvey" } }
+{ "name" : { "first" : "gideon" } }
+{ "name" : { "first" : "elijah" } }
+{ "name" : { "first" : "isolino" } }
+{ "name" : { "first" : "بنیامین" } }
+{ "name" : { "first" : "vincent" } }
+{ "name" : { "first" : "alfred" } }
+{ "name" : { "first" : "florian" } }
+{ "name" : { "first" : "marius" } }
+{ "name" : { "first" : "lincoln" } }
+{ "name" : { "first" : "leonard" } }
+{ "name" : { "first" : "آرتين" } }
+{ "name" : { "first" : "julio" } }
+{ "name" : { "first" : "joseph" } }
+{ "name" : { "first" : "michael" } }
+{ "name" : { "first" : "brian" } }
+{ "name" : { "first" : "john" } }
+
+$set: This stage adds new fields or reset value of existing fields in documents.
+------
+> db.persons.aggregate([ {$match: {gender: "female"}}, {$set: {nameTitle: "$name.title",fullName: {$concat: ["$name.first"," ","$name.last"]}}}, {$project: { _id:0, nameTitle: 1, fullName: 1 }} ]).pretty()
+{ "nameTitle" : "mrs", "fullName" : "پریا پارسا" }
+{ "nameTitle" : "miss", "fullName" : "maeva wilson" }
+{ "nameTitle" : "mrs", "fullName" : "olav oehme" }
+{ "nameTitle" : "mrs", "fullName" : "madeleine till" }
+{ "nameTitle" : "miss", "fullName" : "mestan kaplangı" }
+
+
+MISC: $project examples
+=========================
+o Converting location data into GeoJSON Object:
+-------------------------------------------------
+> db.persons.aggregate([
+... {$project: {
+...   _id: 0,
+...     name: 1,
+...     email: 1,
+...     gender: 1,
+...     location: {
+...     type: "Point",
+...       coordinates: [
+...       {$convert: {input:"$location.coordinates.longitude",to: "double"}},
+...       {$convert: {input:"$location.coordinates.latitude",to: "double"}}]
+...     }
+...   }
+... },
+... {
+... $project:{
+...    fullName: {
+...        $concat: [
+...            { $toUpper: { $substrCP: ["$name.first", 0, 1]} },
+...            { $substrCP: ["$name.first",1,{$subtract: [{$strLenCP: "$name.first"}, 1]}]},
+...            " ",
+...            { $toUpper: { $substrCP: ["$name.last", 0, 1]} },
+...            { $substrCP: ["$name.last",1,{$subtract: [{$strLenCP: "$name.last"}, 1]}]}
+...        ]
+...        },
+...        gender:1,
+...        location: 1,
+...        email: 1
+...      }
+... }
+... ]).pretty()
+{
+        "gender" : "male",
+        "location" : {
+                "type" : "Point",
+                "coordinates" : [
+                        -70.2264,
+                        76.4507
+                ]
+        },
+        "email" : "zachary.lo@example.com",
+        "fullName" : "Zachary Lo"
+}
+{
+        "gender" : "male",
+        "location" : {
+                "type" : "Point",
+                "coordinates" : [
+                        -154.6037,
+                        -29.6721
+                ]
+        },
+        "email" : "carl.jacobs@example.com",
+        "fullName" : "Carl Jacobs"
+}
+
+Note: $convert operator converts a value to a specified type.
+
+> db.persons.aggregate([
+...  {$project: {
+...    _id: 0,
+...      name: 1,
+...      gender: 1,
+...      age: "$dob.age",
+...      birthDate: {$convert: {input: "$dob.date", to: "date"}}
+...    }
+...  },
+...  {
+...  $project:{
+...     fullName: {
+...         $concat: [
+...             { $toUpper: { $substrCP: ["$name.first", 0, 1]} },
+...             { $substrCP: ["$name.first",1,{$subtract: [{$strLenCP: "$name.first"}, 1]}]},
+...             " ",
+...             { $toUpper: { $substrCP: ["$name.last", 0, 1]} },
+...             { $substrCP: ["$name.last",1,{$subtract: [{$strLenCP: "$name.last"}, 1]}]}
+...         ]
+...         },
+...         gender:1,
+...         age: 1,
+...         birthDate: 1
+...       }
+...  }
+...  ]).pretty()
+{
+        "gender" : "male",
+        "age" : 29,
+        "birthDate" : ISODate("1988-10-17T03:45:04Z"),
+        "fullName" : "Zachary Lo"
+}
+{
+        "gender" : "male",
+        "age" : 33,
+        "birthDate" : ISODate("1984-09-30T01:20:26Z"),
+        "fullName" : "Carl Jacobs"
+}
+
+Shortcut Conversion Methods:
+----------------------------
+> db.persons.aggregate([
+... {$project: {
+...   _id: 0,
+...     name: 1,
+...     email: 1,
+...     gender: 1,
+...     location: {
+...     type: "Point",
+...       coordinates: [
+...       {$toDouble: "$location.coordinates.longitude"},
+...       {$toDouble: "$location.coordinates.latitude"}]
+...     }
+...   }
+... },
+... {
+... $project:{
+...    fullName: {
+...        $concat: [
+...            { $toUpper: { $substrCP: ["$name.first", 0, 1]} },
+...            { $substrCP: ["$name.first",1,{$subtract: [{$strLenCP: "$name.first"}, 1]}]},
+...            " ",
+...            { $toUpper: { $substrCP: ["$name.last", 0, 1]} },
+...            { $substrCP: ["$name.last",1,{$subtract: [{$strLenCP: "$name.last"}, 1]}]}
+...        ]
+...        },
+...        gender:1,
+...        location: 1,
+...        email: 1
+...      }
+... }
+... ]).pretty()
+{
+        "gender" : "male",
+        "location" : {
+                "type" : "Point",
+                "coordinates" : [
+                        -70.2264,
+                        76.4507
+                ]
+        },
+        "email" : "zachary.lo@example.com",
+        "fullName" : "Zachary Lo"
+}
+{
+        "gender" : "male",
+        "location" : {
+                "type" : "Point",
+                "coordinates" : [
+                        -154.6037,
+                        -29.6721
+                ]
+        },
+        "email" : "carl.jacobs@example.com",
+
+
+> db.persons.aggregate([
+...  {$project: {
+...    _id: 0,
+...      name: 1,
+...      gender: 1,
+...      age: "$dob.age",
+...      birthDate: {$toDate: "$dob.date"}
+...    }
+...  },
+...  {
+...  $project:{
+...     fullName: {
+...         $concat: [
+...             { $toUpper: { $substrCP: ["$name.first", 0, 1]} },
+...             { $substrCP: ["$name.first",1,{$subtract: [{$strLenCP: "$name.first"}, 1]}]},
+...             " ",
+...             { $toUpper: { $substrCP: ["$name.last", 0, 1]} },
+...             { $substrCP: ["$name.last",1,{$subtract: [{$strLenCP: "$name.last"}, 1]}]}
+...         ]
+...         },
+...         gender:1,
+...         age: 1,
+...         birthDate: 1
+...       }
+...  }
+...  ]).pretty()
+{
+        "gender" : "male",
+        "age" : 29,
+        "birthDate" : ISODate("1988-10-17T03:45:04Z"),
+        "fullName" : "Zachary Lo"
+}
+{
+        "gender" : "male",
+        "age" : 33,
+        "birthDate" : ISODate("1984-09-30T01:20:26Z"),
+        "fullName" : "Carl Jacobs"
+}
+
+> db.persons.aggregate([
+...   {$project: {
+...     _id: 0,
+...       name: 1,
+...       gender: 1,
+...       age: "$dob.age",
+...       birthDate: {$dateToString:{date: {$toDate: "$dob.date"},format: "%Y-%m-%d"}
+...     }
+...  }}
+... ])
+{ "gender" : "male", "name" : { "title" : "mr", "first" : "zachary", "last" : "lo" }, "age" : 29, "birthDate" : "1988-10-17" }
+{ "gender" : "male", "name" : { "title" : "mr", "first" : "carl", "last" : "jacobs" }, "age" : 33, "birthDate" : "1984-09-30" }
+{ "gender" : "male", "name" : { "title" : "mr", "first" : "victor", "last" : "pedersen" }, "age" : 59, "birthDate" : "1959-02-19" }
+
+> db.persons.aggregate([
+...   {$project: {
+...     _id: 0,
+...       name: 1,
+...       gender: 1,
+...       age: "$dob.age",
+...       birthDate: {$dateToString:{date: {$toDate: "$dob.date"},format: "%m-%d-%Y : %H-%M-%S"}
+...     }
+...  }}
+... ])
+{ "gender" : "male", "name" : { "title" : "mr", "first" : "zachary", "last" : "lo" }, "age" : 29, "birthDate" : "10-17-1988 : 03-45-04" }
+{ "gender" : "male", "name" : { "title" : "mr", "first" : "carl", "last" : "jacobs" }, "age" : 33, "birthDate" : "09-30-1984 : 01-20-26" }
+{ "gender" : "male", "name" : { "title" : "mr", "first" : "victor", "last" : "pedersen" }, "age" : 59, "birthDate" : "02-19-1959 : 23-56-23" }
+
+> db.persons.aggregate([
+...    {$project: {
+...      _id: 0,
+...        name: 1,
+...        gender: 1,
+...        age: "$dob.age",
+...        birthDate: {$toDate: "$dob.date"}
+...      }
+...   },
+...   {$group:
+...   {
+...     _id: {birthDayNo: {$isoDayOfWeek: "$birthDate"}}, personsCount: {$sum: 1}
+...     }
+...   },
+...   {$sort: {birthDayNo: 1}}
+...  ])
+{ "_id" : { "birthDayNo" : 7 }, "personsCount" : 724 }
+{ "_id" : { "birthDayNo" : 1 }, "personsCount" : 719 }
+{ "_id" : { "birthDayNo" : 5 }, "personsCount" : 720 }
+{ "_id" : { "birthDayNo" : 6 }, "personsCount" : 707 }
+{ "_id" : { "birthDayNo" : 2 }, "personsCount" : 694 }
+{ "_id" : { "birthDayNo" : 3 }, "personsCount" : 703 }
+{ "_id" : { "birthDayNo" : 4 }, "personsCount" : 733 }
+>                                                                                                                                                                         
+
+> db.persons.aggregate([
+...    {$project: {
+...      _id: 0,
+...        name: 1,
+...        gender: 1,
+...        age: "$dob.age",
+...        birthDate: {$toDate: "$dob.date"}
+...      }
+...   },
+...   {$group:
+...   {
+...     _id: {birthWeekNo: {$isoWeek: "$birthDate"}}, personsCount: {$sum: 1}
+...     }
+...   },
+...   {$sort: {birthWeekNo: 1}}
+...  ])
+{ "_id" : { "birthWeekNo" : 44 }, "personsCount" : 97 }
+{ "_id" : { "birthWeekNo" : 19 }, "personsCount" : 101 }
+{ "_id" : { "birthWeekNo" : 2 }, "personsCount" : 93 }
+{ "_id" : { "birthWeekNo" : 3 }, "personsCount" : 91 }
+{ "_id" : { "birthWeekNo" : 40 }, "personsCount" : 89 }
+
+> db.persons.aggregate([
+...    {$project: {
+...      _id: 0,
+...        name: 1,
+...        gender: 1,
+...        age: "$dob.age",
+...        birthDate: {$toDate: "$dob.date"}
+...      }
+...   },
+...   {$group:
+...   {
+...     _id: {birthYear: {$isoWeekYear: "$birthDate"}}, personsCount: {$sum: 1}
+...     }
+...   },
+...   {$sort: {birthYear: 1}}
+...  ])
+{ "_id" : { "birthYear" : NumberLong(1959) }, "personsCount" : 93 }
+{ "_id" : { "birthYear" : NumberLong(1971) }, "personsCount" : 88 }
+{ "_id" : { "birthYear" : NumberLong(1970) }, "personsCount" : 99 }
+{ "_id" : { "birthYear" : NumberLong(1967) }, "personsCount" : 104 }
+{ "_id" : { "birthYear" : NumberLong(1966) }, "personsCount" : 92 }
+
+
