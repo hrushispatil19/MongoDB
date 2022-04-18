@@ -1,0 +1,30 @@
+count(): syntax - db.collection.count({query},{options - limit | skip | maxTimeMS | readConcern | collation |hint })
+--------
+> db.persons.count()
+5000
+> db.persons.count({gender: "female"})
+2565
+> db.persons.count({gender: "female"},{skip: 200})
+2365
+> db.persons.count({gender: "female"},{limit: 200})
+200
+> db.persons.count({gender: "female"},{maxTimeMS: 1000})
+2565
+> db.persons.count({gender: "female"},{readConcern: "majority"})
+2565
+
+estimatedDocumentCount(): syntax- db.collection.estimatedDocumentCount({<option- maxTimeMS: time in ms>})
+-------------------------
+> db.persons.estimatedDocumentCount()
+5000
+> db.persons.estimatedDocumentCount({maxTimeMS: 10})
+5000
+
+distinct(): syntax - db.collection.distinct("field", {<query>}, {option- collation: {...}})
+-----------
+> db.persons.distinct("name.title")
+[ "madame", "mademoiselle", "miss", "monsieur", "mr", "mrs", "ms" ]
+> db.persons.distinct("gender")
+[ "female", "male" , "other"]
+> db.persons.distinct("name.title",{gender: "male"})
+[ "monsieur", "mr" ]
