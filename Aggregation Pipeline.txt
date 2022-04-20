@@ -211,7 +211,7 @@ $set: This stage adds new fields or reset value of existing fields in documents.
 { "nameTitle" : "miss", "fullName" : "mestan kaplangı" }
 
 
-MISC: $project examples
+MISC: $project examples (with $convert, $substrCP, $strLenCP, $toUpper, $concat aggregation operator)
 =========================
 o Converting location data into GeoJSON Object:
 -------------------------------------------------
@@ -271,7 +271,9 @@ o Converting location data into GeoJSON Object:
         "fullName" : "Carl Jacobs"
 }
 
-Note: $convert operator converts a value to a specified type.
+$convert: $convert operator converts a value to a specified type. 
+---------
+Syntax- {$convert: { input: <expr>, to:<expr>, onNull:<expr>, onError:<expr> } }
 
 > db.persons.aggregate([
 ...  {$project: {
@@ -585,7 +587,7 @@ Here in 2nd document, we have 2 hobbies same i.e. "Cooking".
 { "_id" : { "age" : 29 }, "allHobbies" : [ "Cooking", "Sports", "Skiing" ] }
 
 * Using Projection with Arrays:
-$size:
+$size: Returns size of an array.
 ------
 > db.students.aggregate([
 ... {$project: {name: 1, hobbies:1, noOfHobbies: {$size: "$hobbies"}}}
@@ -594,7 +596,7 @@ $size:
 { "_id" : ObjectId("625db5faf51c03c90496d4c7"), "name" : "Manu", "hobbies" : [ "Eating", "Data Analytics" ], "noOfHobbies" : 2 }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "hobbies" : [ "Cooking", "Skiing" ], "noOfHobbies" : 2 }
 
-$slice:
+$slice: Returns a subset of an array.
 -------
 > db.students.aggregate([ {$project: { scores: { $slice: ["$examScores",0,2] } }} ])
 { "_id" : ObjectId("625db5faf51c03c90496d4c6"), "scores" : [ { "difficulty" : 4, "score" : 57.9 }, { "difficulty" : 6, "score" : 62.1 } ] }
@@ -638,6 +640,8 @@ $filter: Selects a subset of an array based on the specified condition. Returns 
 { "_id" : ObjectId("625db5faf51c03c90496d4c7"), "scores" : [ { "difficulty" : 2, "score" : 74.3 } ] }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "scores" : [ { "difficulty" : 3, "score" : 75.1 }, { "difficulty" : 8, "score" : 44.2 } ] }
 
+Ex. Get highest score of each student
+---
 > db.students.aggregate([ {$project: {name:1, highestScore: {$max: "$examScores.score"}}}, {$sort: {"highestScore": -1}} ])
 { "_id" : ObjectId("625db5faf51c03c90496d4c6"), "name" : "Max", "highestScore" : 88.5 }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "highestScore" : 75.1 }
