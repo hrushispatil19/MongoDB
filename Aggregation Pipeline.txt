@@ -1,4 +1,4 @@
-Aggregation Pipeline: (Stages: $match, $group, $sort, $count, $sortByCount, $skip, $limit, $set, $unset, $project, $unwind)
+Aggregation Pipeline: (Stages: $match, $group, $sort, $count, $sortByCount, $skip, $limit, $set, $unset, $project, $unwind, $bucket)
 =====================
 
 $match: This stage filters and return documents that matches specified condition(s).
@@ -458,10 +458,10 @@ Shortcut Conversion Methods:
 { "_id" : ObjectId("625e94bb2c799e265ce16ad5"), "tdate" : null }
 { "_id" : ObjectId("625e95c02c799e265ce16ad6"), "tdate" : ISODate("2022-04-19T00:00:00Z") }
 { "_id" : ObjectId("625e9a442c799e265ce16ad7"), "tdate" : "2017-02-08T12:10:40.787" }
-> db.test.aggregate([ {$project: {tdate: { $dateFromString: {dateString: "$tdate",format: "%Y-%d-%m",timezone: "GMT",onNull: "$tdate", onError: "%tdate"} }}} ])
+> db.test.aggregate([ {$project: {tdate: { $dateFromString: {dateString: "$tdate",format: "%Y-%d-%m",timezone: "GMT",onNull: "$tdate", onError: "$tdate"} }}} ])
 { "_id" : ObjectId("625e94bb2c799e265ce16ad5") }
 { "_id" : ObjectId("625e95c02c799e265ce16ad6"), "tdate" : ISODate("2022-04-19T00:00:00Z") }
-{ "_id" : ObjectId("625e9a442c799e265ce16ad7"), "tdate" : "%tdate" }
+{ "_id" : ObjectId("625e9a442c799e265ce16ad7"), "tdate" : "2017-02-08T12:10:40.787" }
 
 * $isoDayOfWeek, $isoWeek, $isoWeekYear (Aggr. Op):
 ----------------------------------------
@@ -562,7 +562,6 @@ $unwind: This stage deconstructs an array field in a document and creates separa
 { "_id" : ObjectId("625db5faf51c03c90496d4c7"), "name" : "Manu", "hobbies" : "Data Analytics" }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "hobbies" : "Cooking" }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "hobbies" : "Skiing" }
-
 > db.students.aggregate([ {$unwind: {path: "$hobbies", includeArrayIndex: "arrIndex"}}, {$project: {name: 1, hobbies: 1, arrIndex: 1}}])
 { "_id" : ObjectId("625db5faf51c03c90496d4c6"), "name" : "Max", "hobbies" : "Sports", "arrIndex" : NumberLong(0) }
 { "_id" : ObjectId("625db5faf51c03c90496d4c6"), "name" : "Max", "hobbies" : "Cooking", "arrIndex" : NumberLong(1) }
@@ -570,6 +569,26 @@ $unwind: This stage deconstructs an array field in a document and creates separa
 { "_id" : ObjectId("625db5faf51c03c90496d4c7"), "name" : "Manu", "hobbies" : "Data Analytics", "arrIndex" : NumberLong(1) }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "hobbies" : "Cooking", "arrIndex" : NumberLong(0) }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "hobbies" : "Skiing", "arrIndex" : NumberLong(1) }
+
+> db.students.find()
+{ "_id" : ObjectId("625db5faf51c03c90496d4c6"), "name" : "Max", "hobbies" : [ "Sports", "Cooking" ], "age" : 29, "examScores" : [ { "difficulty" : 4, "score" : 57.9 }, 
+{ "difficulty" : 6, "score" : 62.1 }, { "difficulty" : 3, "score" : 88.5 } ] }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c7"), "name" : "Manu", "hobbies" : [ "Eating", "Data Analytics" ], "age" : 30, 
+"examScores" : [ { "difficulty" : 7, "score" : 52.1 }, { "difficulty" : 2, "score" : 74.3 }, { "difficulty" : 5, "score" : 53.1 } ] }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "hobbies" : [ "Cooking", "Skiing" ], "age" : 29, 
+"examScores" : [ { "difficulty" : 3, "score" : 75.1 }, { "difficulty" : 8, "score" : 44.2 }, { "difficulty" : 6, "score" : 61.5 } ] }
+{ "_id" : ObjectId("625facd6574fcfec273f09df"), "name" : "sam", "hobbies" : [ ] }
+{ "_id" : ObjectId("625facf2574fcfec273f09e0"), "name" : "sam", "hobbies" : null }
+> db.students.aggregate([ {$unwind: {path: "$hobbies",includeArrayIndex: "arrIndex", preserveNullAndEmptyArrays: true}}, {$project: {name: 1, hobbies: 1, arrIndex: 1}}])
+{ "_id" : ObjectId("625db5faf51c03c90496d4c6"), "name" : "Max", "hobbies" : "Sports", "arrIndex" : NumberLong(0) }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c6"), "name" : "Max", "hobbies" : "Cooking", "arrIndex" : NumberLong(1) }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c7"), "name" : "Manu", "hobbies" : "Eating", "arrIndex" : NumberLong(0) }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c7"), "name" : "Manu", "hobbies" : "Data Analytics", "arrIndex" : NumberLong(1) }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "hobbies" : "Cooking", "arrIndex" : NumberLong(0) }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "hobbies" : "Skiing", "arrIndex" : NumberLong(1) }
+{ "_id" : ObjectId("625facd6574fcfec273f09df"), "name" : "sam", "arrIndex" : null }
+{ "_id" : ObjectId("625facf2574fcfec273f09e0"), "name" : "sam", "hobbies" : null, "arrIndex" : null }
+                                                                                                                     
 
 > db.students.aggregate([ {$group: { _id: {age: "$age"}, allHobbies: { $push: "$hobbies" } }}, {$unwind: "$allHobbies"} ])
 { "_id" : { "age" : 30 }, "allHobbies" : [ "Eating", "Data Analytics" ] }
@@ -647,6 +666,7 @@ Ex. Get highest score of each student
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "highestScore" : 75.1 }
 { "_id" : ObjectId("625db5faf51c03c90496d4c7"), "name" : "Manu", "highestScore" : 74.3 }
 					or
+* $first: It selects the first document from each distinct group.					
 > db.students.aggregate([ {$unwind: "$examScores"}, {$project: {name:1, escore: "$examScores.score"}}, {$sort: {"escore":-1}}, {$group: {_id: "$_id",name:{$first:"$name"}, maxScore: {$max: "$escore"}}}, {$sort: {maxScore: -1}} ])
 { "_id" : ObjectId("625db5faf51c03c90496d4c6"), "name" : "Max", "maxScore" : 88.5 }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "maxScore" : 75.1 }
