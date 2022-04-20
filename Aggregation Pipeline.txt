@@ -672,3 +672,207 @@ Ex. Get highest score of each student
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "name" : "Maria", "maxScore" : 75.1 }
 { "_id" : ObjectId("625db5faf51c03c90496d4c7"), "name" : "Manu", "maxScore" : 74.3 }
                                                                                       
+$bucket: This stage categorizes incoming documents into groups i.e called buckets based on specified expression and bucket boundaries.
+-------- It produces output documents only for bucket that contains at least one input document.
+Syntax: {$bucket: {groupBy:<expr>,boundaries: [<lwr_bound1>,<lwr_bound2>,..,<upr_bound>],default:<literal>,output:{<op_1>: <acc_expr>, ..., <op_n>:<acc_expr>}} }
+
+> db.persons.aggregate([
+... {$bucket: {groupBy: "$dob.age",
+...       boundaries: [20,30,40,60,80],
+...       output:
+...       {
+...         personsCount: {$sum: 1},
+...           avgAge: {$avg: "$dob.age"}
+...         }
+...   }
+...   }
+... ])
+{ "_id" : 20, "personsCount" : 868, "avgAge" : 25.101382488479263 }
+{ "_id" : 30, "personsCount" : 910, "avgAge" : 34.51758241758242 }
+{ "_id" : 40, "personsCount" : 1894, "avgAge" : 49.63305174234424 }
+{ "_id" : 60, "personsCount" : 1328, "avgAge" : 66.55798192771084 }
+
+Note: In our collection, we have many documents that contains age more that 70. If we have not specified boundry for such case, then aggregation will fail.
+We can add default field in $bucket stage. It's an additional bucket that contains all documents whose groupBy expression result 
+does not fall into any bucket specified by boundaries.
+
+> db.persons.aggregate([
+... {$bucket: {groupBy: "$dob.age",
+...       boundaries: [20,30,40,50,60,70],
+...       default: "extra",
+...       output:
+...       {
+...         personsCount: {$sum: 1},
+...           avgAge: {$avg: "$dob.age"}
+...         }
+...   }
+...   }
+... ])
+{ "_id" : 20, "personsCount" : 868, "avgAge" : 25.101382488479263 }
+{ "_id" : 30, "personsCount" : 910, "avgAge" : 34.51758241758242 }
+{ "_id" : 40, "personsCount" : 918, "avgAge" : 44.42265795206972 }
+{ "_id" : 50, "personsCount" : 976, "avgAge" : 54.533811475409834 }
+{ "_id" : 60, "personsCount" : 931, "avgAge" : 64.43823845327604 }
+{ "_id" : "extra", "personsCount" : 397, "avgAge" : 71.52896725440806 }
+
+$bucketAuto: This stage is eqivalent to $bucket stage. Just bucket boundaries are created automatically. 
+------------ It evenly distributes documents into specified number of buckets.
+Syntax: {$bucketAuto: {groupBy: <expr>, buckets: <count>, output: {<op_1>: <acc_expr>, ..., <op_n>:<acc_expr>}, granularity: <string> } }
+(Granularity - Available only if all groupBy values are numeric: R5,R10,R20,R40,R80,1-2-5,E6,E12,E24,E48,E96,E192,POWERSOF2)
+
+> db.persons.aggregate([
+... {$bucketAuto: {
+... groupBy: "$dob.age",buckets: 5,
+... output:{
+...       personsCount: {$sum: 1},avgAge: {$avg: "$dob.age"}
+...   }
+...   } }
+... ])
+{ "_id" : { "min" : 21, "max" : 32 }, "personsCount" : 1042, "avgAge" : 25.99616122840691 }
+{ "_id" : { "min" : 32, "max" : 43 }, "personsCount" : 1010, "avgAge" : 36.97722772277228 }
+{ "_id" : { "min" : 43, "max" : 54 }, "personsCount" : 1033, "avgAge" : 47.98838334946757 }
+{ "_id" : { "min" : 54, "max" : 65 }, "personsCount" : 1064, "avgAge" : 58.99342105263158 }
+{ "_id" : { "min" : 65, "max" : 74 }, "personsCount" : 851, "avgAge" : 69.11515863689776 }
+
+> db.persons.aggregate([
+... {$bucketAuto: {
+... groupBy: "$dob.age",buckets: 5,
+... output:{
+...       personsCount: {$sum: 1},avgAge: {$avg: "$dob.age"}
+...   }, granularity: "R5"
+...   } }
+... ])
+{ "_id" : { "min" : 16, "max" : 40 }, "personsCount" : 1778, "avgAge" : 29.920697412823397 }
+{ "_id" : { "min" : 40, "max" : 63 }, "personsCount" : 2178, "avgAge" : 51.11662075298439 }
+{ "_id" : { "min" : 63, "max" : 100 }, "personsCount" : 1044, "avgAge" : 68.06704980842912 }
+
+> db.persons.aggregate([
+... {$bucketAuto: {
+... groupBy: "$dob.age",buckets: 5,
+... output:{
+...       personsCount: {$sum: 1},avgAge: {$avg: "$dob.age"}
+...   }, granularity: "1-2-5"
+...   } }
+... ])
+{ "_id" : { "min" : 20, "max" : 50 }, "personsCount" : 2696, "avgAge" : 34.85867952522255 }
+{ "_id" : { "min" : 50, "max" : 100 }, "personsCount" : 2304, "avgAge" : 61.46440972222222 }
+
+> db.persons.aggregate([
+... {$bucketAuto: {
+... groupBy: "$dob.age",buckets: 5,
+... output:{
+...       personsCount: {$sum: 1},avgAge: {$avg: "$dob.age"}
+...   }, granularity: "E6"
+...   } }
+... ])
+{ "_id" : { "min" : 15, "max" : 33 }, "personsCount" : 1139, "avgAge" : 26.507462686567163 }
+{ "_id" : { "min" : 33, "max" : 47 }, "personsCount" : 1295, "avgAge" : 39.541312741312744 }
+{ "_id" : { "min" : 47, "max" : 68 }, "personsCount" : 1982, "avgAge" : 57.00655903128153 }
+{ "_id" : { "min" : 68, "max" : 100 }, "personsCount" : 584, "avgAge" : 70.56164383561644 }
+
+> db.persons.aggregate([
+... {$bucketAuto: {
+... groupBy: "$dob.age",buckets: 5,
+... output:{
+...       personsCount: {$sum: 1},avgAge: {$avg: "$dob.age"}
+...   }, granularity: "POWERSOF2"
+...   } }
+... ])
+{ "_id" : { "min" : 16, "max" : 32 }, "personsCount" : 1042, "avgAge" : 25.99616122840691 }
+{ "_id" : { "min" : 32, "max" : 64 }, "personsCount" : 3021, "avgAge" : 47.72724263488911 }
+{ "_id" : { "min" : 64, "max" : 128 }, "personsCount" : 937, "avgAge" : 68.64567769477054 }
+
+
+$out:
+-----
+* In Same Database:
+
+> show collections
+persons
+students
+test
+> db.persons.aggregate([
+...  {$project: {
+...    _id: 0,
+...      fullName: {$concat: ["$name.first"," ","$name.last"]},
+...      email: 1,
+...      gender: 1,
+...      location: {
+...      type: "Point",
+...        coordinates: [
+...        {$convert: {input:"$location.coordinates.longitude",to: "double"}},
+...        {$convert: {input:"$location.coordinates.latitude",to: "double"}}]
+...      }
+...    }
+...  },
+...  {$out: "transformedPersons"}
+... ])
+> show collections
+persons
+students
+test
+transformedPersons
+
+* In Different Database:
+> show dbs
+admin          0.000GB
+aggregationDB  0.003GB
+transactions   0.000GB
+updateDB       0.000GB
+> db.persons.aggregate([
+...  {$project: {
+...    _id: 0,
+...      fullName: {$concat: ["$name.first"," ","$name.last"]},
+...      email: 1,
+...      gender: 1,
+...      location: {
+...      type: "Point",
+...        coordinates: [
+...        {$convert: {input:"$location.coordinates.longitude",to: "double"}},
+...        {$convert: {input:"$location.coordinates.latitude",to: "double"}}]
+...      }
+...    }
+...  },
+...  {$out: {db: "transformedDB", coll: "transformedPersons"}}
+... ])
+> show dbs
+admin          0.000GB
+aggregationDB  0.003GB
+transactions   0.000GB
+transformedDB  0.000GB
+updateDB       0.000GB
+
+
+$geoNear:
+---------
+> db.transformedPersons.createIndex({location:"2dsphere"})
+{
+        "numIndexesBefore" : 2,
+        "numIndexesAfter" : 2,
+        "note" : "all indexes already exist",
+        "ok" : 1
+}
+> db.transformedPersons.aggregate([
+... {$geoNear: {
+... near: {type:"Point",coordinates: [-70.01,76.06]},
+...     maxDistance:100000,
+...     minDistance: 10,
+...     query: {gender: "male"},
+...     distanceField: "distance"
+... }
+... }
+... ]).pretty()
+{
+        "_id" : ObjectId("62607b9f5a55b212375024c1"),
+        "gender" : "male",
+        "location" : {
+                "type" : "Point",
+                "coordinates" : [
+                        -70.2264,
+                        76.4507
+                ]
+        },
+        "email" : "zachary.lo@example.com",
+        "fullName" : "zachary lo",
+        "distance" : 43867.18591984135
+}
