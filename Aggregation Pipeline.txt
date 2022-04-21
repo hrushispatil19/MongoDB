@@ -790,7 +790,7 @@ Syntax: {$bucketAuto: {groupBy: <expr>, buckets: <count>, output: {<op_1>: <acc_
 { "_id" : { "min" : 64, "max" : 128 }, "personsCount" : 937, "avgAge" : 68.64567769477054 }
 
 
-$out: This stage takes documents from stages in the pipeline and writes them into specified collection.
+$out: This stage takes documents returned by stages in the pipeline and writes them into specified collection.
 -----
 * In Same Database:
 
