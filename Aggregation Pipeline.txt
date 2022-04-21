@@ -85,7 +85,7 @@ $sortByCount:   It's equivalent to $group + $sort sequence. This stage groups in
 { "_id" : "danmark", "count" : 15 }
 Type "it" for more
 
-$count: This stage will return document that contains number of input documents with specified key.
+$count: This stage will return document that consist of number of input documents with specified key.
 --------
 > db.persons.aggregate([ {$match: {gender: "male"}}, {$count: "males"}])
 { "males" : 2435 }
