@@ -1,4 +1,4 @@
-Aggregation Pipeline: (Stages: $match, $group, $sort, $count, $sortByCount, $skip, $limit, $set, $unset, $project, $unwind, $bucket, $bucketAuto, $geoNear)
+Aggregation Pipeline: (Stages: $match, $group, $sort, $count, $sortByCount, $skip, $limit, $set, $unset, $project, $unwind, $bucket, $bucketAuto, $out, $geoNear)
 =====================
 
 $match: This stage filters and return documents that matches specified condition(s).
