@@ -1,3 +1,6 @@
+Aggregation Stage - $lookup:
+
+
 > db.books.find().pretty()
 {
         "_id" : ObjectId("6234bd2c60a3e0d6d2131f79"),
