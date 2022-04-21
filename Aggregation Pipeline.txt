@@ -659,6 +659,13 @@ $filter: Selects a subset of an array based on the specified condition. Returns 
 { "_id" : ObjectId("625db5faf51c03c90496d4c7"), "scores" : [ { "difficulty" : 2, "score" : 74.3 } ] }
 { "_id" : ObjectId("625db5faf51c03c90496d4c8"), "scores" : [ { "difficulty" : 3, "score" : 75.1 }, { "difficulty" : 8, "score" : 44.2 } ] }
 
+> db.students.aggregate([ {$project: { filteredHobbies: { $filter: { input: "$hobbies", as: "hobby", cond: { $ne: ["$$hobby","Cooking"] } }}}} ])
+{ "_id" : ObjectId("625db5faf51c03c90496d4c6"), "filteredHobbies" : [ "Sports" ] }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c7"), "filteredHobbies" : [ "Eating", "Data Analytics" ] }
+{ "_id" : ObjectId("625db5faf51c03c90496d4c8"), "filteredHobbies" : [ "Skiing" ] }
+{ "_id" : ObjectId("625facd6574fcfec273f09df"), "filteredHobbies" : [ ] }
+{ "_id" : ObjectId("625facf2574fcfec273f09e0"), "filteredHobbies" : null }
+
 Ex. Get highest score of each student
 ---
 > db.students.aggregate([ {$project: {name:1, highestScore: {$max: "$examScores.score"}}}, {$sort: {"highestScore": -1}} ])
@@ -783,7 +790,7 @@ Syntax: {$bucketAuto: {groupBy: <expr>, buckets: <count>, output: {<op_1>: <acc_
 { "_id" : { "min" : 64, "max" : 128 }, "personsCount" : 937, "avgAge" : 68.64567769477054 }
 
 
-$out:
+$out: This stage takes documents from stages in the pipeline and writes them into specified collection.
 -----
 * In Same Database:
 
@@ -843,7 +850,7 @@ transformedDB  0.000GB
 updateDB       0.000GB
 
 
-$geoNear:
+$geoNear: This stage selects documents with GeoJSON object that are in proximity to specified point. It returns result from nearest to farthest distance.
 ---------
 > db.transformedPersons.createIndex({location:"2dsphere"})
 {
