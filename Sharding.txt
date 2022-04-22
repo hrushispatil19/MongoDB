@@ -2,7 +2,7 @@ Sharding:
 ----------
 Sharding is a method for distributing data across multiple machines. MongoDB uses sharding to support 
 deployment of very large datasets. MongoDB uses horizontal scaling through sharding.
-In Sharding, data is distributed (not replicated) across shards. 
+In Sharding, data is distributed (not replicated) across the shards. 
 
 
 		      client
@@ -31,7 +31,7 @@ Config Server: It stores metadata and configuration settings for a whole cluster
 Shard Key: After collection is sharded, for each shard one key is created and it's called as shard key. It's used to identify a shard.
 
 Advantages:
-> We can distribute read and write workload across shards in sharded cluster.
+> We can distribute read and write workload across the shards in sharded cluster.
 > Storage capacity is increased.
 > It also increases data availability.
 
