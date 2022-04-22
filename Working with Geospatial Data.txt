@@ -1,4 +1,4 @@
-Geospatial data is used to describe information about specific location on earth's surface.
+Geospatial data is used to describe information about specific location on the earth's surface.
 
 * Adding /Inserting GeoJSON data:
 ===================================
