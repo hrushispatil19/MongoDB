@@ -1,6 +1,6 @@
 Transactions:
 Transaction is a group of read/write operations that will succeed only if all operations within succeeds.
-If any operation failed in between transaction, then rollback is performed.
+If any operation failed in between transaction, then rollback is performed. Transactions works on operation level.
  
 In version 4.0, MongoDB supports multi-document transactions on replica sets.
 In version 4.2, MongoDB introduces distributed transactions, which adds support for multi-document transactions on sharded clusters.
