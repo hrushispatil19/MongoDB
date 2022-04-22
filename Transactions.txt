@@ -1,5 +1,5 @@
 Transactions:
-Transaction is a group of read/write operations that will succeed only if all operations within succeeds.
+Transaction is a group of read/write operations that will succeeds only if all operations within succeeds.
 If any operation failed in between transaction, then rollback is performed. Transactions works on operation level.
  
 In version 4.0, MongoDB supports multi-document transactions on replica sets.
