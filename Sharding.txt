@@ -1,0 +1,63 @@
+Sharding:
+----------
+Sharding is a method for distributing data across multiple machines. MongoDB uses sharding to support 
+deployment of very large datasets. MongoDB uses horizontal scaling through sharding.
+In Sharding, data is distributed (not replicated) across shards. 
+
+
+		      client
+		   	|
+		  ______|____________
+	 	 |  App Server       |
+	      	 | (router/ mongos)  |
+	         |___________________|
+		     (1 or more)    \
+			 ^     	  ___\____________  
+			 |	 |_ Config Server_| (rs)
+			 |	 /
+		    	 v	/  
+		     (2 or more)
+	   _______    	 _______     _______
+	  |_Shard_|     |_Shard_|   |_Shard_|         [rs- Replica Set]
+	    (rs)          (rs)        (rs)
+
+If user/client has triggered any query, request is sent to mongodb app server. App server will start communicating with the router(mongos).
+Then router will consults with config servers to check which shard is having required data. Once correct shard is found, query is performed on that shard and
+response is sent to app server which then acknowledge to the user.
+Sharded Cluster Components -
+Shard: Shard is a single mongod instance that holds subset of sharded data and it can be deployed as replica set also.
+Router(mongos): It's responsible for routing client request to the correct shard.
+Config Server: It stores metadata and configuration settings for a whole cluster.
+Shard Key: After collection is sharded, for each shard one key is created and it's called as shard key. It's used to identify a shard.
+
+Advantages:
+> We can distribute read and write workload across shards in sharded cluster.
+> Storage capacity is increased.
+> It also increases data availability.
+
+
+* To enable sharding on DB: Syntax - sh.enableSharding("<database>")
+> sh.enableSharding("personsDB")
+
+* We can check sharding status with below command:
+> sh.status()
+
+* To shard collection:-
+using Hashed Sharding:   data is partitioned into chunks using a hash function.
+syntax - sh.shardCollection("<database>.<collection>", { <shard key field> : "hashed" } )
+eg. > sh.shardCollection("personsDB.personscollection", {personid : "hashed"})
+
+using Ranged Sharding:  Collection is partitioned into ranges [min, max] determined by the shard key. Each range is called a chunk.
+syntax - sh.shardCollection("<database>.<collection>", { <shard key field> : <direction>, ... } )
+eg. > sh.shardCollection("personsDB.personscollection", { personid : 1 } )
+
+** Note: If the collection already contains data, you must create an index that supports the shard key before sharding the collection. 
+If the collection is empty, MongoDB creates the index as part of sh.shardCollection().
+
+* We can check shard distribution using below cmd:
+> db.personscollection.getShardDistribution()
+
+Ref. and useful links for sharding:
+https://www.bmc.com/blogs/mongodb-sharding-explained/
+https://coderwall.com/p/bzz1ra/set-up-mongodb-shard-windows-local
+https://www.mongodb.com/docs/manual/tutorial/deploy-shard-cluster/
