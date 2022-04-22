@@ -1,5 +1,7 @@
-Aggregation Stage - $lookup:
-
+$lookup:
+This stage performs a left outer join to an unsharded collection in the same database 
+to filter in documents from the "joined" collection for processing.
+$lookup allows us to join documents on collections that reside in the same database.
 
 > db.books.find().pretty()
 {
@@ -90,4 +92,3 @@ Aggregation Stage - $lookup:
                 }
         ]
 }
-> 
