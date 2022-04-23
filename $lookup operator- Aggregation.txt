@@ -92,3 +92,6 @@ $lookup allows us to join documents on collections that reside in the same datab
                 }
         ]
 }
+
+For more ref. use official mongodb documentation:
+https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/
