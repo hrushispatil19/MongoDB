@@ -133,3 +133,78 @@ aggregationDB> db.sample.aggregate([ { $replaceWith: { _id: "$_id", studName: "$
   { _id: 2, studName: 'Ryan', totalScore: 40, outOf: 50 }
 ]
 
+$mergeObjects:
+aggregationDB> db.sample.insertOne({student: "Sam", hobby: {hoursSpend: 2} })
+{
+  acknowledged: true,
+  insertedId: ObjectId("62643870e34c8dfcedfd6137")
+}
+aggregationDB> db.sample.find().toArray()
+[
+  {
+    _id: 1,
+    student: 'Maya',
+    homework: [ 10, 5, 10 ],
+    quiz: [ 10, 8 ],
+    extraCredit: 0,
+    hobby: { name: 'reading', rating: 7 }
+  },
+  {
+    _id: 2,
+    student: 'Ryan',
+    homework: [ 5, 6, 5 ],
+    quiz: [ 8, 8 ],
+    extraCredit: 8,
+    hobby: { name: 'writing', rating: 5 }
+  },
+  {
+    _id: ObjectId("62643870e34c8dfcedfd6137"),
+    student: 'Sam',
+    hobby: { hoursSpend: 2 }
+  }
+]
+
+aggregationDB> db.sample.aggregate([ { $replaceWith: { $mergeObjects: [{"name":"gaming", "rating": 0, "hoursSpend":0},"$hobby"]}  }])
+[
+  { name: 'reading', rating: 7, hoursSpend: 0 },
+  { name: 'writing', rating: 5, hoursSpend: 0 },
+  { name: 'gaming', rating: 0, hoursSpend: 2 }
+]
+
+$sample: This stage returns specified number of random documents from the collection.
+--------
+aggregationDB> db.sample.aggregate([ { $sample: { size: 2 } }])
+[
+  {
+    _id: ObjectId("62643870e34c8dfcedfd6137"),
+    student: 'Sam',
+    hobby: { hoursSpend: 2 }
+  },
+  {
+    _id: 2,
+    student: 'Ryan',
+    homework: [ 5, 6, 5 ],
+    quiz: [ 8, 8 ],
+    extraCredit: 8,
+    hobby: { name: 'writing', rating: 5 }
+  }
+]
+aggregationDB> db.sample.aggregate([ { $sample: { size: 2 } }])
+[
+  {
+    _id: 1,
+    student: 'Maya',
+    homework: [ 10, 5, 10 ],
+    quiz: [ 10, 8 ],
+    extraCredit: 0,
+    hobby: { name: 'reading', rating: 7 }
+  },
+  {
+    _id: 2,
+    student: 'Ryan',
+    homework: [ 5, 6, 5 ],
+    quiz: [ 8, 8 ],
+    extraCredit: 8,
+    hobby: { name: 'writing', rating: 5 }
+  }
+]
