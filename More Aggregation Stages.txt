@@ -1,0 +1,135 @@
+$listSessions: This stage lists all sessions for the current authenticated user, specified users or all users.
+--------------
+config> db.system.sessions.aggregate([ { $listSessions: {} }])
+[
+  {
+    _id: {
+      id: UUID("83dd2181-29d4-47f9-83a3-3d49ef7a7f05"),
+      uid: Binary(Buffer.from("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "hex"), 0)
+    },
+    lastUse: ISODate("2022-04-23T16:11:44.761Z")
+  }
+]
+
+config> db.system.sessions.aggregate([ { $listSessions: {allUsers: true} }])
+[
+  {
+    _id: {
+      id: UUID("83dd2181-29d4-47f9-83a3-3d49ef7a7f05"),
+      uid: Binary(Buffer.from("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "hex"), 0)
+    },
+    lastUse: ISODate("2022-04-23T16:16:44.771Z")
+  },
+  {
+    _id: {
+      id: UUID("4592a986-0f3f-4bd5-83bb-666bcafe2f59"),
+      uid: Binary(Buffer.from("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "hex"), 0)
+    },
+    lastUse: ISODate("2022-04-23T16:16:44.771Z")
+  }
+
+config> db.system.sessions.aggregate([ { $listSessions: {users:[ {user: "abcd",db:"test"}] } }])
+
+config>
+
+$addFields: This stage adds new fields in the docuemnts. It return documents with all existing fields and newly added fields. Equivalent to $set stage.
+----------- Syntax: { $addFields: { <newField>: <expression>, ... } }
+
+aggregationDB> db.sample.find()
+[
+  {
+    _id: 1,
+    student: 'Maya',
+    homework: [ 10, 5, 10 ],
+    quiz: [ 10, 8 ],
+    extraCredit: 0,
+    hobby: { name: 'reading', rating: 7 }
+  },
+  {
+    _id: 2,
+    student: 'Ryan',
+    homework: [ 5, 6, 5 ],
+    quiz: [ 8, 8 ],
+    extraCredit: 8,
+    hobby: { name: 'writing', rating: 5 }
+  }
+]
+
+aggregationDB> db.sample.aggregate([ { $addFields: { totalHW: { $sum: "$homework" }, totalQuizMarks: { $sum: "$quiz" } } }])
+[
+  {
+    _id: 1,
+    student: 'Maya',
+    homework: [ 10, 5, 10 ],
+    quiz: [ 10, 8 ],
+    extraCredit: 0,
+    hobby: { name: 'reading', rating: 7 },
+    totalHW: 25,
+    totalQuizMarks: 18
+  },
+  {
+    _id: 2,
+    student: 'Ryan',
+    homework: [ 5, 6, 5 ],
+    quiz: [ 8, 8 ],
+    extraCredit: 8,
+    hobby: { name: 'writing', rating: 5 },
+    totalHW: 16,
+    totalQuizMarks: 16
+  }
+]
+
+aggregationDB> db.sample.aggregate([ { $addFields: { totalHW: { $sum: "$homework" }, totalQuizMarks: { $sum: "$quiz" }, extraCredit: {$add: ["$extraCredit",5]} } }])
+[
+  {
+    _id: 1,
+    student: 'Maya',
+    homework: [ 10, 5, 10 ],
+    quiz: [ 10, 8 ],
+    extraCredit: 5,
+    hobby: { name: 'reading', rating: 7 },
+    totalHW: 25,
+    totalQuizMarks: 18
+  },
+  {
+    _id: 2,
+    student: 'Ryan',
+    homework: [ 5, 6, 5 ],
+    quiz: [ 8, 8 ],
+    extraCredit: 13,
+    hobby: { name: 'writing', rating: 5 },
+    totalHW: 16,
+    totalQuizMarks: 16
+  }
+]
+
+aggregationDB> db.sample.aggregate([ { $match: { "extraCredit": { $gt: 5 } } }, { $addFields: { "hobby.rating": 8 } }])
+[
+  {
+    _id: 2,
+    student: 'Ryan',
+    homework: [ 5, 6, 5 ],
+    quiz: [ 8, 8 ],
+    extraCredit: 8,
+    hobby: { name: 'writing', rating: 8 }
+  }
+]
+
+$replaceWith: This stage replaces input document(including the _id field) with the specified document. If document does not exist, $replaceWith will fail.
+------------- Syntax: { $replaceWith: <replacementDocument> }
+
+aggregationDB> db.sample.aggregate([
+... {$replaceWith: {
+..... _id: "$_id", studName: "$student", totalScore: {$add: [{$sum: "$homework"}, "$extraCredit", {$sum: "$quiz"}]}
+..... }} ])
+[
+  { _id: 1, studName: 'Maya', totalScore: 43 },
+  { _id: 2, studName: 'Ryan', totalScore: 40 }
+]
+
+aggregationDB> db.sample.aggregate([ { $replaceWith: { _id: "$_id", studName: "$student", totalScore: { $add: [{ $sum: "$homework" }, "$extraCredit", { $sum: "$quiz" }] }, outOf: 50 } }])
+[
+  { _id: 1, studName: 'Maya', totalScore: 43, outOf: 50 },
+  { _id: 2, studName: 'Ryan', totalScore: 40, outOf: 50 }
+]
+
