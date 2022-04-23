@@ -3,6 +3,18 @@ This stage performs a left outer join to an unsharded collection in the same dat
 to filter in documents from the "joined" collection for processing.
 $lookup allows us to join documents on collections that reside in the same database.
 
+Syntax:
+{$lookup:
+      {
+         from: <foreign collection>,
+         localField: <field from local collection>,
+         foreignField: <field from foreign collection>,
+         let: { <var_1>: <expression>, …, <var_n>: <expression> }, //fields to be used in pipeline
+         pipeline: [ <stage>, ... ],
+         as: <output array field name>
+      }
+}
+
 > db.books.find().pretty()
 {
         "_id" : ObjectId("6234bd2c60a3e0d6d2131f79"),
