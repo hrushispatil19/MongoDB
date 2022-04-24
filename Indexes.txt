@@ -1,0 +1,280 @@
+Indexes:
+=========
+Indexes are special data structure that stores small portion of collection dataset.
+It stores value of specific field or set of fields ordered by value of field.
+Indexes execute a query more efficiently. MongoDB creates a unique index on the _id field during the creation of a collection.
+We cannot drop this index on the _id field.
+
+Type of indexes:
+=================
+> db.persons.getIndexes()
+[ { "v" : 2, "key" : { "_id" : 1 }, "name" : "_id_" } ]
+
+Single Field Indexes: Used to create ascending/descending indexes on single field.
+----------------------
+
+> db.persons.createIndex({"dob.age" : 1})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.persons.getIndexes()
+[
+        {
+                "v" : 2,
+                "key" : {
+                        "_id" : 1
+                },
+                "name" : "_id_"
+        },
+        {
+                "v" : 2,
+                "key" : {
+                        "dob.age" : 1
+                },
+                "name" : "dob.age_1"
+        }
+]
+
+Queries:
+After Index :- 
+> db.persons.explain("executionStats").find({"dob.age" :{$lt: 40}})
+{
+        "explainVersion" : "1",
+        "queryPlanner" : {
+                "namespace" : "indexDB.persons",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "dob.age" : {
+                                "$lt" : 40
+                        }
+                },
+                "maxIndexedOrSolutionsReached" : false,
+                "maxIndexedAndSolutionsReached" : false,
+                "maxScansToExplodeReached" : false,
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "dob.age" : 1
+                                },
+                                "indexName" : "dob.age_1",
+                                "isMultiKey" : false,
+                                "multiKeyPaths" : {
+                                        "dob.age" : [ ]
+                                },
+                                "isUnique" : false,
+                                "isSparse" : false,
+                                "isPartial" : false,
+                                "indexVersion" : 2,
+                                "direction" : "forward",
+                                "indexBounds" : {
+                                        "dob.age" : [
+                                                "[-inf.0, 40.0)"
+                                        ]
+                                }
+                        }
+                },
+                "rejectedPlans" : [ ]
+        },
+        "executionStats" : {
+                "executionSuccess" : true,
+                "nReturned" : 1778,
+                "executionTimeMillis" : 3,   <-- less exec. time 
+                "totalKeysExamined" : 1778,
+                "totalDocsExamined" : 1778,  <-- less docs examined
+                "executionStages" : {
+                        "stage" : "FETCH",
+                        "nReturned" : 1778,
+                        "executionTimeMillisEstimate" : 0,
+                        "works" : 1779,
+                        "advanced" : 1778,
+                        "needTime" : 0,
+                        "needYield" : 0,
+                        "saveState" : 1,
+                        "restoreState" : 1,
+                        "isEOF" : 1,
+                        "docsExamined" : 1778,
+                        "alreadyHasObj" : 0,
+                        "inputStage" : {
+                                "stage" : "IXSCAN",   <-- Index Scan
+                                "nReturned" : 1778,
+                                "executionTimeMillisEstimate" : 0,
+                                "works" : 1779,
+                                "advanced" : 1778,
+                                "needTime" : 0,
+                                "needYield" : 0,
+                                "saveState" : 1,
+                                "restoreState" : 1,
+                                "isEOF" : 1,
+                                "keyPattern" : {
+                                        "dob.age" : 1
+                                },
+                                "indexName" : "dob.age_1",
+                                "isMultiKey" : false,
+                                "multiKeyPaths" : {
+                                        "dob.age" : [ ]
+                                },
+                                "isUnique" : false,
+                                "isSparse" : false,
+                                "isPartial" : false,
+                                "indexVersion" : 2,
+                                "direction" : "forward",
+                                "indexBounds" : {
+                                        "dob.age" : [
+                                                "[-inf.0, 40.0)"
+                                        ]
+                                },
+                                "keysExamined" : 1778,
+                                "seeks" : 1,
+                                "dupsTested" : 0,
+                                "dupsDropped" : 0
+                        }
+                }
+        },
+        "command" : {
+                "find" : "persons",
+                "filter" : {
+                        "dob.age" : {
+                                "$lt" : 40
+                        }
+                },
+                "$db" : "indexDB"
+        },
+        "serverInfo" : {
+                "host" : "HVDIVD04TXD2283",
+                "port" : 27017,
+                "version" : "5.0.6",
+                "gitVersion" : "212a8dbb47f07427dae194a9c75baec1d81d9259"
+        },
+        "serverParameters" : {
+                "internalQueryFacetBufferSizeBytes" : 104857600,
+                "internalQueryFacetMaxOutputDocSizeBytes" : 104857600,
+                "internalLookupStageIntermediateDocumentMaxSizeBytes" : 104857600,
+                "internalDocumentSourceGroupMaxMemoryBytes" : 104857600,
+                "internalQueryMaxBlockingSortMemoryUsageBytes" : 104857600,
+                "internalQueryProhibitBlockingMergeOnMongoS" : 0,
+                "internalQueryMaxAddToSetBytes" : 104857600,
+                "internalDocumentSourceSetWindowFieldsMaxMemoryBytes" : 104857600
+        },
+        "ok" : 1
+}
+
+Before Index Creation:
+> db.persons.dropIndex({"dob.age" : 1})  //To Drop Specific Index
+{ "nIndexesWas" : 2, "ok" : 1 }
+
+> db.persons.explain("executionStats").find({"dob.age" :{$lt: 40}})
+{
+        "explainVersion" : "1",
+        "queryPlanner" : {
+                "namespace" : "indexDB.persons",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "dob.age" : {
+                                "$lt" : 40
+                        }
+                },
+                "maxIndexedOrSolutionsReached" : false,
+                "maxIndexedAndSolutionsReached" : false,
+                "maxScansToExplodeReached" : false,
+                "winningPlan" : {
+                        "stage" : "COLLSCAN",
+                        "filter" : {
+                                "dob.age" : {
+                                        "$lt" : 40
+                                }
+                        },
+                        "direction" : "forward"
+                },
+                "rejectedPlans" : [ ]
+        },
+        "executionStats" : {
+                "executionSuccess" : true,
+                "nReturned" : 1778,
+                "executionTimeMillis" : 4,  <-- more exec. time 
+                "totalKeysExamined" : 0,
+                "totalDocsExamined" : 5000,   <-- more docs examined
+                "executionStages" : {
+                        "stage" : "COLLSCAN",   <-- Collection Scan (whole docs scanned)
+                        "filter" : {
+                                "dob.age" : {
+                                        "$lt" : 40
+                                }
+                        },
+                        "nReturned" : 1778,
+                        "executionTimeMillisEstimate" : 0,
+                        "works" : 5002,
+                        "advanced" : 1778,
+                        "needTime" : 3223,
+                        "needYield" : 0,
+                        "saveState" : 5,
+                        "restoreState" : 5,
+                        "isEOF" : 1,
+                        "direction" : "forward",
+                        "docsExamined" : 5000
+                }
+        },
+        "command" : {
+                "find" : "persons",
+                "filter" : {
+                        "dob.age" : {
+                                "$lt" : 40
+                        }
+                },
+                "$db" : "indexDB"
+        },
+        "serverInfo" : {
+                "host" : "HVDIVD04TXD2283",
+                "port" : 27017,
+                "version" : "5.0.6",
+                "gitVersion" : "212a8dbb47f07427dae194a9c75baec1d81d9259"
+        },
+        "serverParameters" : {
+                "internalQueryFacetBufferSizeBytes" : 104857600,
+                "internalQueryFacetMaxOutputDocSizeBytes" : 104857600,
+                "internalLookupStageIntermediateDocumentMaxSizeBytes" : 104857600,
+                "internalDocumentSourceGroupMaxMemoryBytes" : 104857600,
+                "internalQueryMaxBlockingSortMemoryUsageBytes" : 104857600,
+                "internalQueryProhibitBlockingMergeOnMongoS" : 0,
+                "internalQueryMaxAddToSetBytes" : 104857600,
+                "internalDocumentSourceSetWindowFieldsMaxMemoryBytes" : 104857600
+        },
+        "ok" : 1
+}
+
+Compound Indexes: Used to create indexes on set of fields. In Compound indexes, single index structure holds references to multiple fields.
+-----------------
+> db.persons.createIndex({"dob.age": -1, "gender": 1})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+
+> db.persons.find({"dob.age": {$lt : 30}, gender: "female"}, {name: 1, "dob.age":1, gender: 1, _id: 0})
+{ "gender" : "female", "name" : { "title" : "mrs", "first" : "gonca", "last" : "alnıaçık" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "miss", "first" : "leah", "last" : "long" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "mrs", "first" : "peggy", "last" : "johnston" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "miss", "first" : "julia", "last" : "manner" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "ms", "first" : "paula", "last" : "rubio" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "mrs", "first" : "othilie", "last" : "børstad" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "mrs", "first" : "dora", "last" : "vieira" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "mrs", "first" : "nuria", "last" : "huissen" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "ms", "first" : "alisa", "last" : "ylitalo" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "mrs", "first" : "petúnia", "last" : "silva" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "madame", "first" : "morgane", "last" : "michel" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "miss", "first" : "hildegart", "last" : "rau" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "miss", "first" : "amber", "last" : "adams" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "ms", "first" : "lisa", "last" : "sanders" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "miss", "first" : "brooke", "last" : "bailey" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "miss", "first" : "frauke", "last" : "knorr" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "ms", "first" : "anna", "last" : "rice" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "ms", "first" : "olenka", "last" : "da rosa" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "mrs", "first" : "hannah", "last" : "lilleberg" }, "dob" : { "age" : 29 } }
+{ "gender" : "female", "name" : { "title" : "mrs", "first" : "rose", "last" : "guerin" }, "dob" : { "age" : 29 } }
+
