@@ -2,16 +2,19 @@ Indexes:
 =========
 Indexes are special data structure that stores small portion of collection dataset.
 It stores value of specific field or set of fields ordered by value of field.
-Indexes execute a query more efficiently. MongoDB creates a unique index on the _id field during the creation of a collection.
-We cannot drop this index on the _id field.
+Indexes execute a query more efficiently.
 
-Type of indexes:
-=================
+MongoDB creates a unique index on the _id field during the creation of a collection.
+We cannot drop this index on the _id field.
 > db.persons.getIndexes()
 [ { "v" : 2, "key" : { "_id" : 1 }, "name" : "_id_" } ]
 
-Single Field Indexes: Used to create ascending/descending indexes on single field.
-----------------------
+
+~ Type of indexes:-
+=================
+
+* Single Field Indexes: Used to create ascending/descending indexes on single field.
+-----------------------
 
 > db.persons.createIndex({"dob.age" : 1})
 {
@@ -246,8 +249,8 @@ Before Index Creation:
         "ok" : 1
 }
 
-Compound Indexes: Used to create indexes on set of fields. In Compound indexes, single index structure holds references to multiple fields.
------------------
+* Compound Indexes: Used to create indexes on set of fields. In Compound indexes, single index structure holds references to multiple fields.
+-------------------
 > db.persons.createIndex({"dob.age": -1, "gender": 1})
 {
         "numIndexesBefore" : 1,
@@ -277,4 +280,290 @@ Compound Indexes: Used to create indexes on set of fields. In Compound indexes, 
 { "gender" : "female", "name" : { "title" : "ms", "first" : "olenka", "last" : "da rosa" }, "dob" : { "age" : 29 } }
 { "gender" : "female", "name" : { "title" : "mrs", "first" : "hannah", "last" : "lilleberg" }, "dob" : { "age" : 29 } }
 { "gender" : "female", "name" : { "title" : "mrs", "first" : "rose", "last" : "guerin" }, "dob" : { "age" : 29 } }
+...
+Note: Creating indexes will also speedup sort operation as documents are already in sorted manner.
 
+> db.persons.find({"dob.age" : 34}).sort({"dob.age":1})
+{ "_id" : ObjectId("6258686cbe6b0587d55dd6f5"), "gender" : "female", "name" : { "title" : "mrs", "first" : "cléo", "last" : "roose" }, "location" : { "street" : "4589 blauwkapelseweg", "city" : "de friese meren", "state" : "noord-brabant", "postcode" : 30451, "coordinates" : { "latitude" : "85.1163", "longitude" : "99.1988" }, "timezone" : { "offset" : "+1:00", "description" : "Brussels, Copenhagen, Madrid, Paris" } }, "email" : "cléo.roose@example.com", "login" : { "uuid" : "c057ae42-524c-44a5-b911-a0be9377a58f", "username" : "crazyleopard800", "password" : "candy", "salt" : "RdEsjrMD", "md5" : "8b7efd2cde3aaa97adc5bbc6f02766da", "sha1" : "dbd61f88d2aa630dae169371e9e10558e1332cbf", "sha256" : "884d8299f5fd5d0896c8640330a3b182c62d70e826ad174506fc6cc7c659a3ac" }, "dob" : { "date" : "1983-09-24T06:56:58Z", "age" : 34 }, "registered" : { "date" : "2003-11-04T18:48:02Z", "age" : 14 }, "phone" : "(701)-774-6960", "cell" : "(417)-953-1493", "id" : { "name" : "BSN", "value" : "41358381" }, "picture" : { "large" : "https://randomuser.me/api/portraits/women/73.jpg", "medium" : "https://randomuser.me/api/portraits/med/women/73.jpg", "thumbnail" : "https://randomuser.me/api/portraits/thumb/women/73.jpg" }, "nat" : "NL" }
+
+* Index Properties:
+===================
+
+Unique Indexes: UI ensures that indexed fields do not store duplicate values.
+---------------
+> db.persons.createIndex({"phone" : 1},{unique: true})
+{
+        "numIndexesBefore" : 3,
+        "numIndexesAfter" : 4,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+
+> db.persons.createIndex({"dob.age" : 1},{unique: true})
+{
+        "ok" : 0,
+        "errmsg" : "Index build failed: 2b45049a-6834-4702-ba1a-dfa1fc78b1fc: Collection indexDB.persons ( bfed2885-423b-4379-8581-5289e584372b ) :: caused by :: E11000 duplicate key error collection: indexDB.persons index: dob.age_1 dup key: { dob.age: 21 }",
+        "code" : 11000,
+        "codeName" : "DuplicateKey",
+        "keyPattern" : {
+                "dob.age" : 1
+        },
+        "keyValue" : {
+                "dob.age" : 21
+        }
+}
+Note: Index creation will fail if specified field is having duplicate values. Also it will restrict insertion of duplicate values.
+
+Partial Indexes: PI only index documents in a collection that meets a specified filter expression.
+----------------
+> db.persons.createIndex({"dob.age": 1},{partialFilterExpression: {gender: "male"}})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+
+Note: We can use both combination of unique and partial indexes.
+> db.persons.createIndex({"dob.age": 1},{unique:true, partialFilterExpression: {age: {$lt: 25}}})
+{
+        "numIndexesBefore" : 2,
+        "numIndexesAfter" : 3,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+
+Time-To-Live Indexes: TTL indexes are special single-field indexes that automatically removes documents from a collection after a certain amount of time.
+--------------------- Data expiration is useful for certain types of information like machine generated event data, logs, and session information.
+
+> db.sessions.createIndex({timestamp: 1},{expireAfterSeconds: 30})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.sessions.insertOne({sessionVal: "s123ab43457d", timestamp: new Date()})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("62669d3d2255de3e2be2da8a")
+}
+> db.sessions.find()
+{ "_id" : ObjectId("62669d3d2255de3e2be2da8a"), "sessionVal" : "s123ab43457d", "timestamp" : ISODate("2022-04-25T13:08:13.179Z") }
+After 30 seconds:
+> db.sessions.find()
+> 
+
+
+For Query Diagnosis and Query Planning: use explain() method
+> db.persons.explain().find({"dob.age" : {$gt: 20}})
+> db.persons.explain("executionStats").find({"dob.age" : {$gt: 20}})
+> db.persons.explain("queryPlanner").find({"dob.age" : {$gt: 20}})
+> db.persons.explain("allPlansExecution").find({"dob.age" : {$gt: 20}})
+
+* Multi-Key Indexes: Multi-Key indexes are used to create index on an array field.
+-------------------- In Multi-Key indexes, MongoDB creates an index key for each element in an array.
+
+> db.stud.find().pretty()
+{
+        "_id" : ObjectId("6266ef382255de3e2be2da8c"),
+        "name" : "Sam",
+        "hobbies" : [
+                "reading",
+                "writing"
+        ],
+        "addresses" : [
+                {
+                        "street" : "Baker Street 221B"
+                },
+                {
+                        "street" : "Duke Street"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("6266eee92255de3e2be2da8b"),
+        "name" : "Ron",
+        "hobbies" : [
+                "reading",
+                "games"
+        ],
+        "addresses" : [
+                {
+                        "street" : "Baker Street"
+                },
+                {
+                        "street" : "Brick lane"
+                }
+        ]
+}
+
+Array of values:
+> db.stud.createIndex({hobbies: 1})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.stud.find({"hobbies" : "games"})
+{ "_id" : ObjectId("6266eee92255de3e2be2da8b"), "name" : "Ron", "hobbies" : [ "reading", "games" ], "addresses" : [ { "street" : "Baker Street" }, { "street" : "Brick lane" } ] }
+> db.stud.find({"hobbies" : "games"}).explain()
+{
+        "explainVersion" : "1",
+        "queryPlanner" : {
+                "namespace" : "indexDB.stud",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "hobbies" : {
+                                "$eq" : "games"
+                        }
+                },
+                "queryHash" : "895C9692",
+                "planCacheKey" : "439794C9",
+                "maxIndexedOrSolutionsReached" : false,
+                "maxIndexedAndSolutionsReached" : false,
+                "maxScansToExplodeReached" : false,
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "hobbies" : 1
+                                },
+                                "indexName" : "hobbies_1",
+                                "isMultiKey" : true,		<-- MultiKey is true 
+                                "multiKeyPaths" : {
+                                        "hobbies" : [
+                                                "hobbies"
+                                        ]
+                                }
+
+Array of documents:
+> db.stud.createIndex({addresses: -1})
+{
+        "numIndexesBefore" : 2,
+        "numIndexesAfter" : 3,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.stud.explain().find({"addresses.street": "Baker Street 221B"})
+{
+        "explainVersion" : "1",
+        "queryPlanner" : {
+                "namespace" : "indexDB.stud",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "addresses.street" : {
+                                "$eq" : "Baker Street 221B"
+                        }
+                },
+                "queryHash" : "7CACFF56",
+                "planCacheKey" : "7293519F",
+                "maxIndexedOrSolutionsReached" : false,
+                "maxIndexedAndSolutionsReached" : false,
+                "maxScansToExplodeReached" : false,
+                "winningPlan" : {
+                "stage" : "COLLSCAN",   <-- CollScan is performed as we have not specified value as indexes key ("addresses"). 
+						So use array field name or create index on "arrayField.docElementField". Refer below 2 ways1. 
+                "filter" : {
+                                "addresses.street" : {
+                                        "$eq" : "Baker Street 221B"
+                                }
+                },
+                        "direction" : "forward"
+                }
+
+
+1.
+> db.stud.explain().find({"addresses": {"street": "Baker Street 221B"} })
+{
+        "explainVersion" : "1",
+        "queryPlanner" : {
+                "namespace" : "indexDB.stud",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "addresses" : {
+                                "$eq" : {
+                                        "street" : "Baker Street 221B"
+                                }
+                        }
+                },
+                "queryHash" : "D5FF3435",
+                "planCacheKey" : "0D24A09A",
+                "maxIndexedOrSolutionsReached" : false,
+                "maxIndexedAndSolutionsReached" : false,
+                "maxScansToExplodeReached" : false,
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "addresses" : -1
+                                },
+                                "indexName" : "addresses_-1",
+                                "isMultiKey" : true,		<-- MultiKey is true 
+                                "multiKeyPaths" : {
+                                        "addresses" : [
+                                                "addresses"
+                                        ]
+                                }
+
+2. 
+> db.stud.createIndex({"addresses.street": -1})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.stud.explain().find({"addresses.street": "Baker Street 221B"})
+{
+        "explainVersion" : "1",
+        "queryPlanner" : {
+                "namespace" : "indexDB.stud",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "addresses.street" : {
+                                "$eq" : "Baker Street 221B"
+                        }
+                },
+                "queryHash" : "7CACFF56",
+                "planCacheKey" : "92DE1F16",
+                "maxIndexedOrSolutionsReached" : false,
+                "maxIndexedAndSolutionsReached" : false,
+                "maxScansToExplodeReached" : false,
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "addresses.street" : -1
+                                },
+                                "indexName" : "addresses.street_-1",
+                                "isMultiKey" : true,		<-- MultiKey is true 
+                                "multiKeyPaths" : {
+                                        "addresses.street" : [
+                                                "addresses"
+                                        ]
+                                }
+
+
+Note: We can create compound index by using only one array field and many non-array fields. But we cannot use parallel array fields to create compound index.
+> db.stud.createIndex({name:1, addresses: 1})
+{
+        "numIndexesBefore" : 3,
+        "numIndexesAfter" : 4,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.stud.createIndex({hobbies:1, addresses: 1})  // Both are array fields
+{
+        "ok" : 0,
+        "errmsg" : "Index build failed: b520afc2-4b71-435d-9078-e5c418d410ea: Collection indexDB.stud ( 8bd4a1f1-12cc-4e43-8ac0-5091f2825bc8 ) :: caused by :: cannot index parallel arrays [addresses] [hobbies]",
+        "code" : 171,
+        "codeName" : "CannotIndexParallelArrays"
+}
+
+* Text Indexes:
+---------------
