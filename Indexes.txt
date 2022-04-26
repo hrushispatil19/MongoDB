@@ -9,11 +9,13 @@ We cannot drop this index on the _id field.
 > db.persons.getIndexes()
 [ { "v" : 2, "key" : { "_id" : 1 }, "name" : "_id_" } ]
 
-~ Type of indexes:- (Single Field, Compound, Multi Key, ...)
-===================
+
+~ Type of indexes:-
+==================
 
 * Single Field Indexes: Used to create ascending/descending indexes on single field.
 -----------------------
+
 > db.persons.createIndex({"dob.age" : 1})
 {
         "numIndexesBefore" : 1,
@@ -40,7 +42,7 @@ We cannot drop this index on the _id field.
 ]
 
 Queries:
-- After Index Creation :- 
+After Index :- 
 > db.persons.explain("executionStats").find({"dob.age" :{$lt: 40}})
 {
         "explainVersion" : "1",
@@ -164,7 +166,7 @@ Queries:
         "ok" : 1
 }
 
-- Before Index Creation:
+Before Index Creation:
 > db.persons.dropIndex({"dob.age" : 1})  //To Drop Specific Index
 { "nIndexesWas" : 2, "ok" : 1 }
 
@@ -565,3 +567,57 @@ Note: We can create compound index by using only one array field and many non-ar
 
 * Text Indexes:
 ---------------
+> db.stores.find()
+{ "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes" }
+{ "_id" : 2, "name" : "Burger Buns", "description" : "Gourmet hamburgers" }
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee" }
+{ "_id" : 4, "name" : "Clothes Clothes Clothes", "description" : "Discount clothing" }
+{ "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods" }
+
+> db.stores.createIndex({name: "text"})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+We can create only one text index per collection.
+> db.stores.dropIndex("name_text")
+{ "nIndexesWas" : 2, "ok" : 1 }
+
+> db.stores.createIndex({name: "text",description: "text"})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.stores.createIndex({name: "text",description: "text"},{name: "myTextIndex"})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+
+Text Search Examples:
+
+> db.stores.find({$text: {$search: "coffee"}})
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee" }   
+{ "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes" }
+> db.stores.find({$text: {$search: "coffee shop"}})				<-- will check for coffee or shop (separate) texts in a collection
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee" }
+{ "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes" }
+{ "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods" }
+> db.stores.find({$text: {$search: "\"coffee shop\""}})
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee" }
+> db.stores.find({$text: {$search: "coffee -shop"}})  				 <-- will check for coffee but exclude shop word
+{ "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes" }
+> db.stores.find({$text: {$search: "coffee shop"}},{score: {$meta: "textScore"}})
+{ "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods", "score" : 0.75 }
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee", "score" : 2.25 }
+{ "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes", "score" : 0.75 }
+> db.stores.find({$text: {$search: "coffee shop"}},{score: {$meta: "textScore"}}).sort({score: {$meta: "textScore"}})  <-- will sort docs as per textScore
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee", "score" : 2.25 }
+{ "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes", "score" : 0.75 }
+{ "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods", "score" : 0.75 }
