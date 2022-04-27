@@ -621,3 +621,53 @@ Text Search Examples:
 { "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee", "score" : 2.25 }
 { "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes", "score" : 0.75 }
 { "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods", "score" : 0.75 }
+> db.stores.find({$text: {$search: "shop", $caseSensitive: true}})
+> db.stores.find({$text: {$search: "shop", $caseSensitive: false}})
+{ "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods" }
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee" }
+
+Setting up default language and Using Weights:
+-----------------------------------------------
+> db.stores.createIndex({name: "text", description: "text"},{default_language: "english"})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+
+With default weights:
+> db.stores.find({$text: {$search: "Coffee"}},{score: {$meta: "textScore"}})
+{ "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes", "score" : 0.75 }
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee", "score" : 1.5 }
+
+With custom weights:
+> db.stores.createIndex({name: "text", description: "text"},{default_language: "english",weights: {name: 5, description: 10}})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+> db.stores.find({$text: {$search: "Coffee"}},{score: {$meta: "textScore"}})
+{ "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes", "score" : 7.5 }
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee", "score" : 11.25 }
+> db.stores.find({$text: {$search: "shop"}},{score: {$meta: "textScore"}})
+{ "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods", "score" : 3.75 }
+{ "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee", "score" : 3.75 }
+
+** Note: So we have created all these indexes in foreground. MongoDB will locks the collection while creation of index.
+So we can't perform any query and if we performed it will wait until index is created. So to avoid such a cases(mainly in prod env), we can create background index.
+
+> db.ratings.find()
+{ "_id" : ObjectId("62698c54f9a3db2b52598acd"), "person_id" : 1, "score" : 38.724435832396495, "age" : 46 }
+{ "_id" : ObjectId("62698c54f9a3db2b52598ace"), "person_id" : 2, "score" : 18.38696024394405, "age" : 58 }
+{ "_id" : ObjectId("62698c54f9a3db2b52598acf"), "person_id" : 3, "score" : 40.954752426412114, "age" : 20 }
+{ "_id" : ObjectId("62698c54f9a3db2b52598ad0"), "person_id" : 4, "score" : 98.65628585263653, "age" : 40 }
+> db.ratings.createIndex({age: -1},{background: true})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
