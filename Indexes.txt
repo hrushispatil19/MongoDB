@@ -284,7 +284,8 @@ Before Index Creation:
 Note: Creating indexes will also speedup sort operation as documents are already in sorted manner.
 
 > db.persons.find({"dob.age" : 34}).sort({"dob.age":1})
-{ "_id" : ObjectId("6258686cbe6b0587d55dd6f5"), "gender" : "female", "name" : { "title" : "mrs", "first" : "cléo", "last" : "roose" }, "location" : { "street" : "4589 blauwkapelseweg", "city" : "de friese meren", "state" : "noord-brabant", "postcode" : 30451, "coordinates" : { "latitude" : "85.1163", "longitude" : "99.1988" }, "timezone" : { "offset" : "+1:00", "description" : "Brussels, Copenhagen, Madrid, Paris" } }, "email" : "cléo.roose@example.com", "login" : { "uuid" : "c057ae42-524c-44a5-b911-a0be9377a58f", "username" : "crazyleopard800", "password" : "candy", "salt" : "RdEsjrMD", "md5" : "8b7efd2cde3aaa97adc5bbc6f02766da", "sha1" : "dbd61f88d2aa630dae169371e9e10558e1332cbf", "sha256" : "884d8299f5fd5d0896c8640330a3b182c62d70e826ad174506fc6cc7c659a3ac" }, "dob" : { "date" : "1983-09-24T06:56:58Z", "age" : 34 }, "registered" : { "date" : "2003-11-04T18:48:02Z", "age" : 14 }, "phone" : "(701)-774-6960", "cell" : "(417)-953-1493", "id" : { "name" : "BSN", "value" : "41358381" }, "picture" : { "large" : "https://randomuser.me/api/portraits/women/73.jpg", "medium" : "https://randomuser.me/api/portraits/med/women/73.jpg", "thumbnail" : "https://randomuser.me/api/portraits/thumb/women/73.jpg" }, "nat" : "NL" }
+> db.persons.find({"dob.age" : 34}).sort({"dob.age":-1})
+{ "_id" : ObjectId("6258686cbe6b0587d55dd7d3"), "gender" : "male", "name" : { "title" : "mr", "first" : "cildo", "last" : "nunes" }, "location" : { "street" : "3774 rua josé bonifácio ", "city" : "são leopoldo", "state" : "pará", "postcode" : 80306, "coordinates" : { "latitude" : "-65.7858", "longitude" : "8.0064" }, "timezone" : { "offset" : "+10:00", "description" : "Eastern Australia, Guam, Vladivostok" } }, "email" : "cildo.nunes@example.com", "login" : { "uuid" : "0737107f-69d1-4064-8b62-788923fbc75f", "username" : "whitetiger847", "password" : "idontknow", "salt" : "QSPRe8vu", "md5" : "212e2b4d8a05ccc42ee15123e9a420b2", "sha1" : "41a711a528b3e01f4c89cb83c2dbebe3df105daf", "sha256" : "d1238e9a0572ee69e3de87fe0fd723e342cc76270cedec1a735fac7c526fb119" }, "dob" : { "date" : "1984-03-06T12:12:11Z", "age" : 34 }, "registered" : { "date" : "2009-05-07T01:50:49Z", "age" : 9 }, "phone" : "(41) 5879-5066", "cell" : "(29) 1619-0368", "id" : { "name" : "", "value" : null }, "picture" : { "large" : "https://randomuser.me/api/portraits/men/46.jpg", "medium" : "https://randomuser.me/api/portraits/med/men/46.jpg", "thumbnail" : "https://randomuser.me/api/portraits/thumb/men/46.jpg" }, "nat" : "BR" }
 
 * Index Properties:
 ===================
@@ -565,8 +566,9 @@ Note: We can create compound index by using only one array field and many non-ar
         "codeName" : "CannotIndexParallelArrays"
 }
 
-* Text Indexes:
----------------
+* Text Indexes: Text indexes are used to create index on string fields and array of strings. We can create only one text index per collection.
+--------------- To perform text search, we must need to create text index first.
+
 > db.stores.find()
 { "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes" }
 { "_id" : 2, "name" : "Burger Buns", "description" : "Gourmet hamburgers" }
@@ -581,6 +583,7 @@ Note: We can create compound index by using only one array field and many non-ar
         "createdCollectionAutomatically" : false,
         "ok" : 1
 }
+
 We can create only one text index per collection.
 > db.stores.dropIndex("name_text")
 { "nIndexesWas" : 2, "ok" : 1 }
@@ -622,7 +625,7 @@ Text Search Examples:
 { "_id" : 1, "name" : "Java Hut", "description" : "Coffee and cakes", "score" : 0.75 }
 { "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods", "score" : 0.75 }
 > db.stores.find({$text: {$search: "shop", $caseSensitive: true}})
-> db.stores.find({$text: {$search: "shop", $caseSensitive: false}})
+> db.stores.find({$text: {$search: "shop", $caseSensitive: false}})   //Default 
 { "_id" : 5, "name" : "Java Shopping", "description" : "Indonesian goods" }
 { "_id" : 3, "name" : "Coffee Shop", "description" : "Just coffee" }
 
@@ -671,3 +674,75 @@ So we can't perform any query and if we performed it will wait until index is cr
         "createdCollectionAutomatically" : false,
         "ok" : 1
 }
+
+* Wildcard Indexes: Wildcard indexes are special type of indexes that supports queries for unknown fields.
+------------------- 
+> db.users.find()
+{ "_id" : 1, "user" : "Ron" }
+{ "_id" : 2, "user" : { "name" : "Ron" } }
+{ "_id" : 3, "user" : { "hobbies" : [ "Reading", "Writing" ], "name" : "Ron" } }
+
+> db.users.createIndex({"user.$**": 1})
+{
+        "numIndexesBefore" : 1,
+        "numIndexesAfter" : 2,
+        "createdCollectionAutomatically" : false,
+        "ok" : 1
+}
+
+Note: Wild card indexes create index from user field to all it's subdocument fields. $** specifies same. 
+
+> db.users.find({user: "Ron"}).explain()
+{
+        "explainVersion" : "1",
+        "queryPlanner" : {
+                "namespace" : "indexDB.users",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "user" : {
+                                "$eq" : "Ron"
+                        }
+                },
+                "queryHash" : "CA835768",
+                "planCacheKey" : "DBCA08C3",
+                "maxIndexedOrSolutionsReached" : false,
+                "maxIndexedAndSolutionsReached" : false,
+                "maxScansToExplodeReached" : false,
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "$_path" : 1,
+                                        "user" : 1
+                                },
+                                "indexName" : "user.$**_1",
+                                "isMultiKey" : false,
+
+> db.users.find({"user.name":"Ron"}).explain()
+{
+        "explainVersion" : "1",
+        "queryPlanner" : {
+                "namespace" : "indexDB.users",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "user.name" : {
+                                "$eq" : "Ron"
+                        }
+                },
+                "queryHash" : "1ACDE5A5",
+                "planCacheKey" : "8E5712CE",
+                "maxIndexedOrSolutionsReached" : false,
+                "maxIndexedAndSolutionsReached" : false,
+                "maxScansToExplodeReached" : false,
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "$_path" : 1,
+                                        "user.name" : 1
+                                },
+                                "indexName" : "user.$**_1",
+                                "isMultiKey" : false,
+
