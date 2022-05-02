@@ -216,7 +216,7 @@ Upsert Option in updateOne() or updateMany():
 ---------------------------------------------
 Note : 
 Syntax for Update Operations -
-	update...({filter},{updated data},{options like upsert,writeConcern})  
+	update...({filter},{updated data},{options like upsert,writeConcern,arrayFilters,hint})  
 Default Value for upsert option is false.  
 When will set it to true, it will create new documents if no document matches the filter or update documents that matches the filter.   
 
@@ -340,17 +340,48 @@ MISC: $[] and $[el] combination.
 > db.bkpPersons.find()
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Cars", "rating" : 7 }, { "name" : "Reading", "rating" : 7 } ] }
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
-{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6}]}
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
 { "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
+
 > db.bkpPersons.updateOne({hobbies: {$elemMatch: {name: "Cars",rating: 7}}},{$set: {"hobbies.$[el].name":"Writing","hobbies.$[el].rating": 9}},{arrayFilters:[{"el.name":"Cars","el.rating": {$eq: 7}}]})
 { "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
 > db.bkpPersons.find()
-{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ] }
+{ "_id" : ObjectId("623aedd2a0e62c9bd9663e1e"), "name" : "Sam", "age" : 15, "hobbies" : [ { "name" : "Writing", "rating" : 9 }, { "name" : "Reading", "rating" : 7 } ]}
 { "_id" : ObjectId("623aedd2a0e62c9bd9663e20"), "name" : "Ron", "age" : 25, "hobbies" : [ "Fishing", "Cars", "Yoga", "Reading", "Writing", "Reading" ] }
-{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6 } ] }
+{ "_id" : ObjectId("623b06b6a940d7a766d202e8"), "name" : "Max", "age" : 25, "hobbies" : [ { "name" : "Painting", "rating" : 7 }, { "name" : "Painting", "rating" : 6}]}
 { "_id" : ObjectId("623b912e7689cad0d668fc54"), "name" : "Mini", "age" : 32, "hobbies" : [ { "name" : "Yoga", "rating" : 8 } ] }
 { "_id" : ObjectId("623ce8306f019ec091fb78ec"), "name" : "Roy", "age" : 25, "hobbies" : [ "Reading", "Writing" ] }
+
+Multiple Conditions in arrayFilters:
+> db.test.find()
+[ {
+    _id: 1,
+    grades: [
+      { type: 'quiz', questions: [ 10, 8, 5 ] },
+      { type: 'quiz', questions: [ 8, 9, 6 ] },
+      { type: 'hw', questions: [ 5, 4, 3 ] },
+      { type: 'exam', questions: [ 25, 10, 23, 0 ] }
+    ]
+} ]
+> db.test.updateMany({},{$inc: {"grades.$[el].questions.$[val]": 5}},{arrayFilters: [{"el.type": {$ne: "quiz"}},{val: {$lte: 10}}]})
+{
+  acknowledged: true,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+> db.test.find()
+[
+  {
+    _id: 1,
+    grades: [
+      { type: 'quiz', questions: [ 10, 8, 5 ] },
+      { type: 'quiz', questions: [ 8, 9, 6 ] },
+      { type: 'hw', questions: [ 10, 9, 8 ] },
+      { type: 'exam', questions: [ 25, 15, 23, 5 ] }
+    ]
+ } ]
 
 
 * Adding Elements in an Array: ($push)
