@@ -252,7 +252,8 @@ because we have set validation action as warn".
 }                                                                                                                                                                       
 
 
-More Example:
+More Examples:
+===============
 
 > let schemaObject = {
 ...   bsonType: 'object',
@@ -310,10 +311,14 @@ Adding Schema Validation:
 > db.runCommand({collMod: "testData", validator: {$jsonSchema: schemaObject}})
 { ok: 1 }
 
-Validation level and action:
------------------------------
-Validation Level specifies which kind of operations are validated/checked. Values - strict (default), moderate, off
-Validation Action specifies what action will be taken if validation fails. Values - error, warn
+Adding Validation level and action:
+------------------------------------
+* Validation Level specifies which kind of operations are validated/checked. Values - strict (default), moderate, off
+If set to strict, all inserts and updates are checked. If set to moderate, all inserts are checked but updates are checked for only documents that are valid before.
+If set to off, validation is not checked for inserts/updates.
+
+* Validation Action specifies what action will be taken if validation fails. Values - error, warn
+If set to error, mongodb will throw validation error. If set to warn, mongodb will show warning but documents are inserted/updated.
 
 > db.testData.find()
 { "_id" : ObjectId("627a33a1297de4726f24b71c"), "uname" : "abcd12", "upass" : "abcd12", "age" : 12 }  
@@ -416,3 +421,4 @@ WriteError({
                                                 "emailId"
                                         ]
                                 }
+
