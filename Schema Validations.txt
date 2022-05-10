@@ -295,6 +295,7 @@ More Examples:
 ...       bsonType: ['array'],
 ...       minItems: 1,
 ...       maxItems: 10,
+...       uniqueItems: true,
 ...       items: {
 ...         bsonType: 'object',
 ...         properties: {
