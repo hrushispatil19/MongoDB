@@ -251,3 +251,168 @@ because we have set validation action as warn".
         ]
 }                                                                                                                                                                       
 
+
+More Example:
+
+> let schemaObject = {
+...   bsonType: 'object',
+...   required: [ 'uname', 'upass', 'emailId', 'age' ],
+...   properties: {
+...     uname: {
+...       bsonType: 'string',
+...       minLength: 6,
+...       maxLength: 15,
+...       description: 'must be string of 6-20 chars and is required'
+...     },
+...     upass: {
+...       bsonType: 'string',
+...       description: 'must be string and is required'
+...     },
+...     emailId: {
+...       bsonType: 'string',
+...       description: 'must be string and is required'
+...     },
+...     age: {
+...       bsonType: 'int',
+...       minimum: 18,
+...       maximum: 60,
+...       description: 'must be in between 18 to 60 and is required'
+...     },
+...     dob: { bsonType: 'date' },
+...     address: {
+...       type: 'object',
+...       required: [ 'pinCode' ],
+...       properties: {
+...         loc: { bsonType: 'string' },
+...         pinCode: {
+...           bsonType: 'string',
+...           description: 'must be string and is required'
+...         }
+...       }
+...     },
+...     skills: {
+...       bsonType: ['array'],
+...       minItems: 1,
+...       maxItems: 10,
+...       items: {
+...         bsonType: 'object',
+...         properties: {
+...           skillName: { bsonType: 'string', description: 'is required' },
+...           rating: { bsonType: 'double' }
+...         }
+...       }
+...     }
+...   }
+... }
+
+Adding Schema Validation:
+-----------------------------
+> db.runCommand({collMod: "testData", validator: {$jsonSchema: schemaObject}})
+{ ok: 1 }
+
+Validation level and action:
+-----------------------------
+Validation Level specifies which kind of operations are validated/checked. Values - strict (default), moderate, off
+Validation Action specifies what action will be taken if validation fails. Values - error, warn
+
+> db.testData.find()
+{ "_id" : ObjectId("627a33a1297de4726f24b71c"), "uname" : "abcd12", "upass" : "abcd12", "age" : 12 }  
+--> 1 document is already present before addition of validation schema.
+
+> db.runCommand({collMod: "testData", validator: {$jsonSchema: schemaObject}, validationLevel: "moderate", validationAction: "error"})
+{ ok: 1 }
+
+Inserts are checked- (If doc. satisfies all validations then it will be inserted in collection)
+> db.testData.insertOne({uname: "hp1998", upass: "#hp1998", age: NumberInt("24"), emailId: "hp@abc.com", skills: [{skillName: "cooking", rating: 4}]})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("627a363e94d4b2b601ae807a")
+}
+> db.testData.find().pretty()
+{
+        "_id" : ObjectId("627a33a1297de4726f24b71c"),
+        "uname" : "abcd12",
+        "upass" : "abcd12",
+        "age" : 12
+}
+{
+        "_id" : ObjectId("627a363e94d4b2b601ae807a"),
+        "uname" : "hp1998",
+        "upass" : "#hp1998",
+        "age" : 24,
+        "emailId" : "hp@abc.com",
+        "skills" : [
+                {
+                        "skillName" : "cooking",
+                        "rating" : 4
+                }
+        ]
+}
+
+Updates are checked only for documents which are valid before. In our case, 1st document is invalid (as age : 12) and 2nd document is valid.
+So it will check validations for only 2nd document. It will update first document (which not satisfies validation schema), if it matches specified filter condition.
+
+
+> db.testData.updateMany({},{$set: {age: NumberInt(21)}})
+{ "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
+> db.testData.find().pretty()
+{
+        "_id" : ObjectId("627a33a1297de4726f24b71c"),   -> Invalid as per validation, still updated
+        "uname" : "abcd12",
+        "upass" : "abcd12",
+        "age" : 21
+}
+{
+        "_id" : ObjectId("627a363e94d4b2b601ae807a"),  -> Already valid document, so it's updated 
+        "uname" : "hp1998",
+        "upass" : "#hp1998",
+        "age" : 21,
+        "emailId" : "hp@abc.com",
+        "skills" : [
+                {
+                        "skillName" : "cooking",
+                        "rating" : 4
+                }
+        ]
+}
+
+Note: If validationLevel is strict, it will throw error i.e. "document failed validation"
+
+> db.runCommand({collMod: "testData", validator: {$jsonSchema: schemaObject}, validationLevel: "strict", validationAction: "error"})
+{ "ok" : 1 }
+> db.testData.updateMany({},{$set: {age: NumberInt(24)}})
+WriteError({
+        "index" : 0,
+        "code" : 121,
+        "errmsg" : "Document failed validation",
+        "op" : {
+                "q" : {
+
+                },
+                "u" : {
+                        "$set" : {
+                                "age" : NumberInt(24)
+                        }
+                },
+                "multi" : true,
+                "upsert" : false
+        },
+        "errInfo" : {
+                "failingDocumentId" : ObjectId("627a33a1297de4726f24b71c"),   --> 1st doc. is invalid (emaiId i.e. required field is missing)
+                "details" : {
+                        "operatorName" : "$jsonSchema",
+                        "schemaRulesNotSatisfied" : [
+                                {
+                                        "operatorName" : "required",
+                                        "specifiedAs" : {
+                                                "required" : [
+                                                        "uname",
+                                                        "upass",
+                                                        "emailId",
+                                                        "age"
+                                                ]
+                                        },
+                                        "missingProperties" : [
+                                                "emailId"
+                                        ]
+                                }
