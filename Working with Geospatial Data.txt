@@ -197,7 +197,8 @@ Let's create area using below coordinates:
 > var p3= [73.8755705, 18.5811982];
 > var p4= [73.9099028, 18.6261011];
 
-> db.locations.find({loc: {$geoWithin: {$geometry: {type: "Polygon", coordinates: [[p1, p2, p3, p4, p1]]}}}})
+> db.locations.find({loc: {$geoWithin: {$geometry: {type: "Polygon", coordinates: [[p1, p2, p3, p4, p1]]}}}}) 
+// If starting and ending coordinates is not same (i.e. P1), mongodb server will throw "Loop is not closed" error
 { "_id" : ObjectId("6244ada65b82f380ae52ac08"), "name" : "I.Nagar", "loc" : { "type" : "Point", "coordinates" : [ 73.9031222, 18.5808727 ] } }
 { "_id" : ObjectId("6244ada65b82f380ae52ac09"), "name" : "Lohegaon", "loc" : { "type" : "Point", "coordinates" : [ 73.9243224, 18.5968179 ] } }
 { "_id" : ObjectId("6244ada65b82f380ae52ac0a"), "name" : "Dhanori", "loc" : { "type" : "Point", "coordinates" : [ 73.8960841, 18.5967365 ] } }
