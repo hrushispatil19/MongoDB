@@ -389,6 +389,10 @@ Evaluation Operator:
 =====================
 
 $regex: It selects documents that matches specified regular expression.
+For $regex, we can use one of the following syntaxes:
+{ <field>: { $regex: /pattern/, $options: '<options>' } }
+{ <field>: { $regex: 'pattern', $options: '<options>' } }
+{ <field>: { $regex: /pattern/<options> } }
 -------
 Ex. Find Document which contains "Parent" substring in summary field.
 > db.serials.find({summary: {$regex: /Parents/}})
