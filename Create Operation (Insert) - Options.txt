@@ -158,7 +158,7 @@ createDB : It's a database name
 -c : stands for collection
 shows : It's a collection in createDB database 
 --jsonArray: indicates that file contains array of documents
---drop : It will drop a collection and then import the data to same collection
+--drop : It will drop existing (specified) collection and then will import data to a collection
 
 
 After Import:-
