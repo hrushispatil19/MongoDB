@@ -1,0 +1,68 @@
+Importing Data:
+================
+The mongoimport tool imports content from JSON, CSV, or TSV file.
+
+Options:
+	-d / --db : To specify DB Name ( If not specified, by default it takes "test" DB )
+	-c / --collection : To specify Collection Name ( If not specified, by default it takes "test" collection)
+	--file : To specify file name that is having data which needs to be imported
+	--type : To specify type of file (i.e. json|csv|tsv)
+	--uri : To specify URI connection string of DB (eg. 'mongodb+srv:...' )
+	-h / --host : To specify Host name of DB
+	-u / --username : To authenticate specified user name (when specified MongoDB will automatically prompts for password)
+	--port : To specify port number
+	--mode : It Specifies how the import process should handle existing documents (i.e. insert|upsert|merge|delete) //Note: upsert will replace existing document
+	...
+
+Note: we can specify options values in 2 ways : 1) option=value 2) option value
+H:\DB\mongodb\bin>mongoimport --file=H:\DB\mongodb\bin\data\tv-shows.json -d shows -c tvShows --jsonArray --drop
+2022-06-11T22:52:31.254+0530    connected to: mongodb://localhost/
+2022-06-11T22:52:31.254+0530    dropping: shows.tvShows
+2022-06-11T22:52:31.302+0530    240 document(s) imported successfully. 0 document(s) failed to import.
+
+test> use shows
+switched to db shows
+shows> show collections
+tvShows
+shows> db.tvShows.find().count()
+240
+
+Exporting Data:
+=================
+The mongoexport tool exports content to JSON or CSV file.
+
+Options:
+	-d / --db : To specify DB Name ( If not specified, by default it takes "test" DB )
+	-c / --collection : To specify Collection Name ( If not specified, by default it takes "test" collection)
+	--out: To specify file name in which data needs to be exported
+	--type : To specify type of file (i.e. json|csv)
+	--uri : To specify URI connection string of DB (eg. 'mongodb+srv:...' )
+	-h / --host : To specify Host name of DB
+	-u / --username : To authenticate specified user name (when specified MongoDB will automatically prompts for password)
+	--port : To specify port number
+	-q / --query : To specify filter condition expr or query
+	...
+
+To JSON File:
+H:\DB\mongodb\bin>mongoexport -d shows -c tvShows --jsonArray --out=H:\DB\mongodb\bin\data\tv-shows-exp.json
+2022-06-11T23:36:40.914+0530    connected to: mongodb://localhost/
+2022-06-11T23:36:40.966+0530    exported 240 records
+
+To CSV File:
+H:\DB\mongodb\bin>mongoexport -d shows -c tvShows --jsonArray --type=csv --fields=_id,name,type --out=H:\DB\mongodb\bin\data\tv-shows-exp.csv
+2022-06-11T23:43:25.193+0530    connected to: mongodb://localhost/
+2022-06-11T23:43:25.203+0530    exported 240 records
+
+
+Misc
+=====
+shows> db.tvShowsBkp.find().count()
+0
+
+* Copy Data from One Collection to Another :
+shows> db.tvShows.find().forEach(function(doc){if(doc.runtime <= 39){db.tvShowsBkp.insertOne(doc)}})
+
+shows> db.tvShowsBkp.find().count()
+64
+
+
