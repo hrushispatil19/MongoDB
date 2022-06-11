@@ -30,7 +30,7 @@ shows> db.tvShows.find().count()
 240
 
 From CSV File:
-H:\LASRGUI\MongoDB\DB\mongodb-database-tools-windows-x86_64-100.5.2\bin>mongoimport H:\LASRGUI\MongoDB\DB\mongodb-database-tools-windows-x86_64-100.5.2\bin\data\tv-shows-exp.csv --type=csv --headerline -d test -c sampleColl
+H:\DB\mongodb\bin>mongoimport H:\DB\mongodb\bin\data\tv-shows-exp.csv --type=csv --headerline -d test -c sampleColl
 2022-06-12T00:20:54.103+0530    connected to: mongodb://localhost/
 2022-06-12T00:20:54.128+0530    240 document(s) imported successfully. 0 document(s) failed to import.
 
