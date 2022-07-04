@@ -1,0 +1,5 @@
+Auditing:  https://mongoing.com/docs/tutorial/configure-audit-filters.html
+
+Bulk Write Operations:   https://www.mongodb.com/docs/manual/reference/method/db.collection.bulkWrite/
+
+Bulk Operation Methods :   https://www.mongodb.com/docs/manual/reference/method/js-bulk/
